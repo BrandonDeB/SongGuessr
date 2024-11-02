@@ -64,7 +64,7 @@ export default function App() {
                 </div>
 
 
-                <img className="streak" src="../public/fireEmoji.jpg" alt={"loser"} width="35" height="35"/>
+                <img className="streak" src="../public/fireEmoji.jpg" alt={"loser"}/>
                 <h3>{streak}</h3>
 
                 <div className="profile"></div>
