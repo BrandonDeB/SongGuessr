@@ -65,7 +65,9 @@ export default function App() {
                     {isPopupOpen && (
                         <div className="modal">
                             <div className="content">
+                                <div className="contentText">
                                 {correct}
+
                                 <h2>This song is from {getCountbyIso(currentSong.country)}</h2>
                                 <img className= "songImage" src={currentSong.album_image.url} alt={"Song pic"}/>
                                 <h2>{currentSong.song_name}</h2>
@@ -75,10 +77,7 @@ export default function App() {
 
                                 <div className="popButtons">
                                     <button onClick={closePopup} type="button">Next Song</button>
-                                    <button onClick={handleLike}>
-                                        <FiHeart className="heart"/>
-                                    </button>
-
+                                                          </div>
                                 </div>
 
                             </div>
@@ -241,27 +240,27 @@ export default function App() {
                 <img className="streak" src="../fireGif.gif" alt={"loser"}/>
                 <h3>{streak}</h3>
 
-                <div className="profile">
-                     {profilePic ? (
-                <img src={profilePic} alt="Profile" className="profile-pic" />
-                     ) : (
-                    <>
-                     <button type="button" onClick={handleLogin}>Login</button>
-                </>
-                    )}
-            </div>
+            {/*    <div className="profile">*/}
+            {/*         {profilePic ? (*/}
+            {/*    <img src={profilePic} alt="Profile" className="profile-pic" />*/}
+            {/*         ) : (*/}
+            {/*        <>*/}
+            {/*         <button type="button" onClick={handleLogin}>Login</button>*/}
+            {/*    </>*/}
+            {/*        )}*/}
+            {/*</div>*/}
 
 
 
-                <div className="leaderboard">
-                    <h2>Leaderboards:</h2>
-                    {leaderboard.map((profile, index) => (
-                        <div key={index} className="leaderboardCard">
-                            <h4>{profile.name} | Score: {profile.streak}</h4>
-                        </div>
-                    ))}
+                {/*<div className="leaderboard">*/}
+                {/*    <h2>Leaderboards:</h2>*/}
+                {/*    {leaderboard.map((profile, index) => (*/}
+                {/*        <div key={index} className="leaderboardCard">*/}
+                {/*            <h4>{profile.name} | Score: {profile.streak}</h4>*/}
+                {/*        </div>*/}
+                {/*    ))}*/}
 
-                </div>
+                {/*</div>*/}
 
 
             </>
