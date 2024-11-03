@@ -5,11 +5,12 @@
     align-items: center;
     justify-content: center;
     z-index: 100;
+    opacity: 40%;
 }
 
 .content {
+    opacity: 100%;
     position: absolute;
-    background: white;
 
     border-radius: 4px;
     align-content: center;
@@ -20,6 +21,7 @@
     width: 60%;
     text-align: center;
     height: 70%;
+    color: black;
 }
 
 .content button {
