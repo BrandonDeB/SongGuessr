@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import './correctPop.css';
 import Globe from 'react-globe.gl';
 
 
@@ -48,7 +49,7 @@ export default function App() {
     //Make pop-up show up, add to streak if correct
     const handleConfirmGuess = () => {
 
-
+        setIsPopupOpen(true);
         setStreak(streak + 1);
         nextSong()
        // alert("IT WORKED");
@@ -106,14 +107,21 @@ export default function App() {
                        onHexPolygonClick={handleHexPolygonClick}
                 />
 
-                <div id="countryText">
+                <Popup />
+
+                <div className="countryText">
                     <h1>{selectedCountry}</h1>
                     <h2>{selectedAbbr}</h2>
+
+                    <div className="songPlayer">
+
+                    </div>
                 </div>
 
 
                 <div id="button">
-                    <button type="button" onClick={handleConfirmGuess}>Confirm Guess</button>
+                <button type="button" onClick={handleConfirmGuess}>Confirm Guess</button>
+
                 </div>
 
 
