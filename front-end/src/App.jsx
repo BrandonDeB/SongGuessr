@@ -4,7 +4,10 @@ import './correctPop.css';
 import Globe from 'react-globe.gl';
 
 
+
 export default function App() {
+
+
         const [countries, setCountries] = useState({features: []});
         const [selectedCountry, setSelectedCountry] = useState("Nothing Selected");
         const [selectedAbbr, setSelectedAbbr] = useState("NULL");
@@ -16,10 +19,9 @@ export default function App() {
             {
                 title: "Song og the Year",
                 artist: "The PPPP boys",
-                image: "url",
-                preview: "",
-                id:"",
-                country: ""
+                image: "https://bloximages.chicago2.vip.townnews.com/thestar.com/content/tncms/assets/v3/editorial/a/df/adf7bfb8-92a4-11ef-8a90-8f3a011c5db5/671b4be244139.image.jpg?resize=400%2C400",
+                preview: "url2",
+                country: "Latvia"
             }
         )
         const [leaderboard, setLeaderboard] = useState([
@@ -31,6 +33,7 @@ export default function App() {
 
         const closePopup = () => {
             setIsPopupOpen(false);
+            nextSong();
         }
 
         const Popup = () => {
@@ -39,9 +42,18 @@ export default function App() {
                     {isPopupOpen && (
                         <div className="modal">
                             <div className="content">
-                                <h1 style={{ color: 'green' }}>CORRECT ANSWER!</h1>
-                                <h2>{useState(county)}</h2>
-                                <a href="#" className="close" onClick={closePopup}>&times;</a>
+                                <h1 style={{color: 'green'}}>CORRECT ANSWER!</h1>
+                                <h2>This song is from {currentSong.country}</h2>
+                                <img className= "songImage" src={currentSong.image} alt={"Song pic"}/>
+                                <h2>{currentSong.title}</h2>
+                                <h2>{currentSong.artist}</h2>
+
+                                <div className="popButtons">
+                                    <button onClick={closePopup} type="button">Next Song</button>
+
+                                    <button type="button">Like</button>
+                                </div>
+
                             </div>
                         </div>
                     )}
@@ -55,12 +67,10 @@ export default function App() {
                 setColors((prevArray) => [...prevArray, `#${Math.round(Math.random() * Math.pow(2, 24)).toString(16).padStart(6, '0')}`]);
             }
             fetch('../public/ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
-            fetch('http://localhost:5000/get-streak')
+            fetch('https://localhost:5000/get-streak')
                 .then(response => response.json())
                 .then(json => setLeaderBoard(json))
                 .catch(error => console.error(error));
-
-                nextSong();
         }, []);
 
     const handleHexPolygonClick = (polygon) => {
@@ -83,7 +93,7 @@ export default function App() {
     };
 
     const sendStreak = (streak) => {
-        fetch('http://localhost:5000/set-streak', {method: 'POST', // or 'PUT'
+        fetch('https://localhost:5000/set-streak', {method: 'POST', // or 'PUT'
             headers: { 'Content-Type': 'application/json',},
             body: JSON.stringify(streak),
         })
@@ -93,7 +103,7 @@ export default function App() {
     }
 
     const getProfilePic = () => {
-        fetch('http://localhost:5000/profile-pic')
+        fetch('https://localhost:5000/profile-pic')
         .then(response => response.json())
         .then(json => setProfilePic(json["url"]))
         .catch(error => console.error(error));
@@ -105,7 +115,7 @@ export default function App() {
             country_codes.push(countries.features[i].properties.ISO_A2);
         }
         console.log(country_codes);
-        fetch('http://localhost:5000/next-song', {method: 'POST', // or 'PUT'
+        fetch('https://localhost:5000/next-song', {method: 'POST', // or 'PUT'
             headers: { 'Content-Type': 'application/json',},
             body: JSON.stringify(country_codes),
             })
@@ -114,7 +124,8 @@ export default function App() {
             .catch(error => console.error(error));
 
     };
-    
+
+
         return (
             <>
                 <Globe class="globe"
@@ -140,12 +151,12 @@ export default function App() {
                     <h2>{selectedAbbr}</h2>
 
                     <div className="songPlayer">
-                        <href a ="{{currentSong['preview'] }}"></href>
+
                     </div>
                 </div>
 
 
-                <div id="button">
+                <div className="button">
                 <button type="button" onClick={handleConfirmGuess}>Confirm Guess</button>
 
                 </div>
@@ -155,10 +166,6 @@ export default function App() {
                 <h3>{streak}</h3>
 
                 <div className="profile"></div>
-
-                <div className="songPlayer">
-
-                </div>
 
 
                 <div className="leaderboard">

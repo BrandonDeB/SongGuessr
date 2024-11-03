@@ -35,14 +35,15 @@ body {
   background-color: #ff0000;
 }
 
-button {
-  margin: 0;
+.button button {
+  margin: 10px;
   position: absolute;
   top: 90%;
   left: 50%;
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
   opacity: 70%;
+
 }
 
 h3{
@@ -94,7 +95,6 @@ h3{
   top: 5%;
   left: 5%;
 
-
   margin: 5px;
   height: 50%;
   width: 100%;
@@ -103,5 +103,10 @@ h3{
   opacity: 70%;
   text-align: center;
   color: black;
+}
 
+
+.songImage{
+  max-width: 40%;
+  max-height: 40%;
 }
