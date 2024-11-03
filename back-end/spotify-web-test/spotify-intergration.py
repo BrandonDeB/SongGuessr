@@ -154,7 +154,7 @@ def like_song():
 @app.route('/next_song', methods=['POST'])
 def next_song():
     #print(os.getcwd())
-    with open(os.getcwd()+"\\countryArtistDict.json") as f:
+    with open("countryArtistDict.json") as f:
         # Load the JSON data into a Python dictionary
         data = json.load(f)
         country_codes = list(data.keys())
@@ -166,7 +166,7 @@ def next_song():
         art_spotify= search_artist(api_token, artist['name'])
         if(art_spotify!= None):
             songs=get_songs_by_artist(get_token(),art_spotify["id"]);
-            if (songs!=None):
+            if (songs!={}):
                 song= random.choice(songs)
                 #print(song)
                 #print(f"{song["name"]} by {art_spotify["name"]}| {song["album"]["images"][0]} | {song["preview_url"]}  {country}")
