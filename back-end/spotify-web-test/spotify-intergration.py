@@ -171,10 +171,18 @@ def like_song():
 def next_song():
     """Fetch a random song from a randomly selected country artist."""
     try:
+        acceptableCodes = []
+        if request.data:
+            jdata = request.get_json()
+            for code in jdata:
+                acceptableCodes.append(code)
         with open("countryArtistDict.json") as f:
             data = json.load(f)
 
         country_codes = list(data.keys())
+        for code in country_codes:
+            if code not in acceptableCodes:
+                country_codes.remove(code)
         api_token = get_token()
 
         while True:

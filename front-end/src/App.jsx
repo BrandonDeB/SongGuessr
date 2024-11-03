@@ -100,11 +100,12 @@ export default function App() {
         console.log(selectedCountry);
         if (selectedAbbr == currentSong.country) {
             setCorrect(<h1 style={{color: 'green'}}>CORRECT</h1>);
+            setStreak(streak + 1)
         } else {
             setCorrect(<h1 style={{color: 'red'}}>INCORRECT</h1>);
+            setStreak(0)
         }
         setIsPopupOpen(true);
-        setStreak(streak + 1);
 
        // alert("IT WORKED");
 
