@@ -8,15 +8,15 @@ import Globe from 'react-globe.gl';
 export default function App() {
 
 
-        const [countries, setCountries] = useState({features: []});
-        const [selectedCountry, setSelectedCountry] = useState("Nothing Selected");
-        const [selectedAbbr, setSelectedAbbr] = useState("NULL");
-        const [colors, setColors] = useState([])
-        const [streak, setStreak] = useState(0);
-        const [profilePic, setProfilePic] = useState(null);
-        const [leaderBoard, setLeaderBoard] = useState(null);
-        const [correct, setCorrect] = useState(<h1 style={{color: 'green'}}>CORRECT</h1>);
-        const [iso, setIso] = useState(null);
+    const [countries, setCountries] = useState({features: []});
+    const [selectedCountry, setSelectedCountry] = useState("Nothing Selected");
+    const [selectedAbbr, setSelectedAbbr] = useState("NULL");
+    const [colors, setColors] = useState([])
+    const [streak, setStreak] = useState(0);
+    const [profilePic, setProfilePic] = useState(null);
+    const [leaderBoard, setLeaderBoard] = useState(null);
+    const [correct, setCorrect] = useState(<h1 style={{color: 'green'}}>CORRECT</h1>);
+    const [iso, setIso] = useState(null);
     const [currentSong, setCurrentSong] = useState(
             {
                 song_name: "Song og the Year",
@@ -26,18 +26,28 @@ export default function App() {
                 id:"",
                 country: "US"
             }
-        )
-        const [leaderboard, setLeaderboard] = useState([
-            { name: 'Landon', streak: 100 },
-            { name: 'Koby', streak: 2 },
-            { name: 'Brandon', streak: 1 },
-        ]);
-        const [isPopupOpen, setIsPopupOpen] = useState(false);
-
-        const closePopup = () => {
-            nextSong();
-            setIsPopupOpen(false);
+        );
+    const [bufferSong, setBufferSong] = useState(
+        {
+            song_name: "Song og the Year",
+            artist_name: "The PPPP boys",
+            album_image: "http://bloximages.chicago2.vip.townnews.com/thestar.com/content/tncms/assets/v3/editorial/a/df/adf7bfb8-92a4-11ef-8a90-8f3a011c5db5/671b4be244139.image.jpg?resize=400%2C400",
+            preview_url: "url2",
+            id:"",
+            country: "US"
         }
+    );
+    const [leaderboard, setLeaderboard] = useState([
+        { name: 'Landon', streak: 100 },
+        { name: 'Koby', streak: 2 },
+        { name: 'Brandon', streak: 1 },
+    ]);
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+    const closePopup = () => {
+        nextSong();
+        setIsPopupOpen(false);
+    }
 
         function getCountbyIso(isoSearch) {
             for(let i = 0; i < iso.length; i++) {
@@ -75,16 +85,16 @@ export default function App() {
 
 
         useEffect(() => {
-            for(let i = 0; i < 50; i++){
+            for (let i = 0; i < 50; i++) {
                 setColors((prevArray) => [...prevArray, `#${Math.round(Math.random() * Math.pow(2, 24)).toString(16).padStart(6, '0')}`]);
             }
-            fetch('../public/ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
-            fetch('../public/slim-2.json').then(res => res.json()).then(setIso);
+            fetch('../ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
+            fetch('../slim-2.json').then(res => res.json()).then(setIso);
             fetch('http://localhost:5000/get-streak')
                 .then(response => response.json())
                 .then(json => setLeaderBoard(json))
                 .catch(error => console.error(error));
-            nextSong();
+            load_songs();
         }, []);
 
     const handleHexPolygonClick = (polygon) => {
@@ -138,19 +148,43 @@ export default function App() {
         window.location.href = 'http://localhost:5000/login'; // Redirect to your login route
     }
 
+    const load_songs = async () => {
+        let country_codes = []
+        for (let i = 0; i < countries.features.length; i++) {
+            country_codes.push(countries.features[i].properties.ISO_A2);
+        }
+        await fetch('http://localhost:5000/next-song', {
+            method: 'POST', // or 'PUT'
+            headers: {'Content-Type': 'application/json',},
+            body: JSON.stringify(country_codes),
+        })
+            .then(response => response.json())
+            .then(json => setCurrentSong(json))
+            .catch(error => console.error(error));
+        fetch('http://localhost:5000/next-song', {
+            method: 'POST', // or 'PUT'
+            headers: {'Content-Type': 'application/json',},
+            body: JSON.stringify(country_codes),
+        })
+            .then(response => response.json())
+            .then(json => setBufferSong(json))
+            .catch(error => console.error(error));
+
+    };
 
     const nextSong = () => {
         let country_codes = []
         for (let i = 0; i < countries.features.length; i++) {
             country_codes.push(countries.features[i].properties.ISO_A2);
         }
-        console.log(country_codes);
-        fetch('http://localhost:5000/next-song', {method: 'POST', // or 'PUT'
-            headers: { 'Content-Type': 'application/json',},
+        setCurrentSong(bufferSong);
+        fetch('http://localhost:5000/next-song', {
+            method: 'POST', // or 'PUT'
+            headers: {'Content-Type': 'application/json',},
             body: JSON.stringify(country_codes),
-            })
+        })
             .then(response => response.json())
-            .then(json => setCurrentSong(json))
+            .then(json => setBufferSong(json))
             .catch(error => console.error(error));
 
     };
@@ -195,7 +229,7 @@ export default function App() {
                 </div>
 
 
-                <img className="streak" src="../public/fireGif.gif" alt={"loser"}/>
+                <img className="streak" src="../fireGif.gif" alt={"loser"}/>
                 <h3>{streak}</h3>
 
                 <div className="profile">
