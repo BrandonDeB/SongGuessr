@@ -19,8 +19,9 @@ export default function App() {
             {
                 title: "Song og the Year",
                 artist: "The PPPP boys",
-                image: "https://bloximages.chicago2.vip.townnews.com/thestar.com/content/tncms/assets/v3/editorial/a/df/adf7bfb8-92a4-11ef-8a90-8f3a011c5db5/671b4be244139.image.jpg?resize=400%2C400",
+                image: "http://bloximages.chicago2.vip.townnews.com/thestar.com/content/tncms/assets/v3/editorial/a/df/adf7bfb8-92a4-11ef-8a90-8f3a011c5db5/671b4be244139.image.jpg?resize=400%2C400",
                 preview: "url2",
+                id:"",
                 country: "Latvia"
             }
         )
@@ -67,10 +68,11 @@ export default function App() {
                 setColors((prevArray) => [...prevArray, `#${Math.round(Math.random() * Math.pow(2, 24)).toString(16).padStart(6, '0')}`]);
             }
             fetch('../public/ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
-            fetch('https://localhost:5000/get-streak')
+            fetch('http://localhost:5000/get-streak')
                 .then(response => response.json())
                 .then(json => setLeaderBoard(json))
                 .catch(error => console.error(error));
+                nextSong();
         }, []);
 
     const handleHexPolygonClick = (polygon) => {
@@ -93,7 +95,7 @@ export default function App() {
     };
 
     const sendStreak = (streak) => {
-        fetch('https://localhost:5000/set-streak', {method: 'POST', // or 'PUT'
+        fetch('http://localhost:5000/set-streak', {method: 'POST', // or 'PUT'
             headers: { 'Content-Type': 'application/json',},
             body: JSON.stringify(streak),
         })
@@ -103,7 +105,7 @@ export default function App() {
     }
 
     const getProfilePic = () => {
-        fetch('https://localhost:5000/profile-pic')
+        fetch('http://localhost:5000/profile-pic')
         .then(response => response.json())
         .then(json => setProfilePic(json["url"]))
         .catch(error => console.error(error));
@@ -115,7 +117,7 @@ export default function App() {
             country_codes.push(countries.features[i].properties.ISO_A2);
         }
         console.log(country_codes);
-        fetch('https://localhost:5000/next-song', {method: 'POST', // or 'PUT'
+        fetch('http://localhost:5000/next-song', {method: 'POST', // or 'PUT'
             headers: { 'Content-Type': 'application/json',},
             body: JSON.stringify(country_codes),
             })
