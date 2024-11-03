@@ -243,11 +243,15 @@ def next_song():
         )
 
 @app.route('/profile-pic', methods=['GET', 'POST'])
-def get_profile_picture(token):
-   
-     user_info = validate_user(token)
-     if user_info and 'images' in user_info and user_info['images']:
-        return user_info['images'][0]['url']  # Get the first image URL
+def get_profile_picture():
+     
+     if "access_token" in session:
+        token = session['access_token']
+        user_info = validate_user(token)
+        if user_info and 'images' in user_info and user_info['images']:
+            return user_info['images'][0]['url']  # Get the first image URL
+        else:
+            return None
      return None  # Return None if no image is found
 
 def main():
