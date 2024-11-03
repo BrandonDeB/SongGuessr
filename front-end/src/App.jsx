@@ -4,7 +4,10 @@ import './correctPop.css';
 import Globe from 'react-globe.gl';
 
 
+
 export default function App() {
+
+
         const [countries, setCountries] = useState({features: []});
         const [selectedCountry, setSelectedCountry] = useState("Nothing Selected");
         const [selectedAbbr, setSelectedAbbr] = useState("NULL");
@@ -16,9 +19,9 @@ export default function App() {
             {
                 title: "Song og the Year",
                 artist: "The PPPP boys",
-                image: "url",
-                preview: "",
-                country: ""
+                image: "https://bloximages.chicago2.vip.townnews.com/thestar.com/content/tncms/assets/v3/editorial/a/df/adf7bfb8-92a4-11ef-8a90-8f3a011c5db5/671b4be244139.image.jpg?resize=400%2C400",
+                preview: "url2",
+                country: "Latvia"
             }
         )
         const [leaderboard, setLeaderboard] = useState([
@@ -30,6 +33,7 @@ export default function App() {
 
         const closePopup = () => {
             setIsPopupOpen(false);
+            nextSong();
         }
 
         const Popup = () => {
@@ -38,9 +42,18 @@ export default function App() {
                     {isPopupOpen && (
                         <div className="modal">
                             <div className="content">
-                                <h1 style={{ color: 'green' }}>CORRECT ANSWER!</h1>
-                                <h2>{useState(county)}</h2>
-                                <a href="#" className="close" onClick={closePopup}>&times;</a>
+                                <h1 style={{color: 'green'}}>CORRECT ANSWER!</h1>
+                                <h2>This song is from {currentSong.country}</h2>
+                                <img className= "songImage" src={currentSong.image} alt={"Song pic"}/>
+                                <h2>{currentSong.title}</h2>
+                                <h2>{currentSong.artist}</h2>
+
+                                <div className="popButtons">
+                                    <button onClick={closePopup} type="button">Next Song</button>
+
+                                    <button type="button">Like</button>
+                                </div>
+
                             </div>
                         </div>
                     )}
@@ -112,6 +125,7 @@ export default function App() {
 
     };
 
+
         return (
             <>
                 <Globe class="globe"
@@ -142,7 +156,7 @@ export default function App() {
                 </div>
 
 
-                <div id="button">
+                <div className="button">
                 <button type="button" onClick={handleConfirmGuess}>Confirm Guess</button>
 
                 </div>
@@ -152,10 +166,6 @@ export default function App() {
                 <h3>{streak}</h3>
 
                 <div className="profile"></div>
-
-                <div className="songPlayer">
-
-                </div>
 
 
                 <div className="leaderboard">
