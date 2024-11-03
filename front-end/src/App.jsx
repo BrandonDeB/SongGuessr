@@ -97,6 +97,13 @@ export default function App() {
        // alert("IT WORKED");
 
     };
+    const handleLogin = () => {
+
+        login_user();
+        getProfilePic();
+       // alert("IT WORKED");
+
+    };
 
     const sendStreak = (streak) => {
         fetch('http://localhost:5000/set-streak', {method: 'POST', // or 'PUT'
@@ -114,6 +121,10 @@ export default function App() {
         .then(json => setProfilePic(json["url"]))
         .catch(error => console.error(error));
     }
+    const login_user = () => {
+        window.location.href = 'http://localhost:5000/login'; // Redirect to your login route
+    }
+    
 
     const nextSong = () => {
         let country_codes = []
@@ -174,7 +185,17 @@ export default function App() {
                 <img className="streak" src="../public/fireEmoji.jpg" alt={"loser"}/>
                 <h3>{streak}</h3>
 
-                <div className="profile"></div>
+                <div className="profile">
+                     {profilePic ? (
+                <img src={profilePic} alt="Profile" className="profile-pic" />
+                     ) : (
+                    <>
+             <h2>Login</h2>
+                     <button type="button" onClick={handleLogin}>Login</button>
+                </>
+                    )}
+            </div>
+
 
 
                 <div className="leaderboard">
