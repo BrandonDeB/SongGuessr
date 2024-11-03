@@ -1,11 +1,11 @@
 .modal {
     position: absolute;
     inset: 0;
-    background: rgba(166, 166, 166, 0.7);
+    background: rgba(255, 255, 255, 0.7);
     align-items: center;
     justify-content: center;
     z-index: 100;
-    opacity: 40%;
+    opacity: 100%;
 }
 
 .content {
@@ -24,13 +24,12 @@
     color: black;
 }
 
-.content button {
-    opacity: 100;
-
-  color: white;
-    background: green;
+.popButtons button {
+    align-content: center;
+    background-color: transparent;
 
 }
+
 
 .modal:target {
     display: flex; /* Show modal when targeted */

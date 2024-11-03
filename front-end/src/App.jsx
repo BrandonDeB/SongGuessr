@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import './correctPop.css';
 import Globe from 'react-globe.gl';
-
+import  './heart.css';
+import {FiHeart} from "react-icons/fi";
 
 
 export default function App() {
@@ -70,10 +71,14 @@ export default function App() {
                                 <h2>{currentSong.song_name}</h2>
                                 <h2>{currentSong.artist_name}</h2>
 
+
+
                                 <div className="popButtons">
                                     <button onClick={closePopup} type="button">Next Song</button>
+                                    <button onClick={handleLike}>
+                                        <FiHeart className="heart"/>
+                                    </button>
 
-                                    <button type="button">Like</button>
                                 </div>
 
                             </div>
@@ -103,6 +108,10 @@ export default function App() {
         setSelectedAbbr(polygon.properties.ISO_A2);
         setSelectedCountry(polygon.properties.ADMIN);
     };
+
+    const handleLike =() =>{
+        alert("Clicked");
+    }
 
     //Make pop-up show up, add to streak if correct
     const handleConfirmGuess = () => {
