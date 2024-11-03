@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify API Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Spotify Artist Search</h1>
+        <input type="text" id="artistName" placeholder="Enter Artist Name">
+        <button id="fetchArtist">Search Artist</button>
+        <div id="artistInfo"></div>
+    </div>
+    <script>
+        document.getElementById('fetchArtist').addEventListener('click', async () => {
+            const artistName = document.getElementById('artistName').value;
+            try {
+                const response = await fetch(`/search_artist?name=${encodeURIComponent(artistName)}`);
+                if (!response.ok) throw new Error('Artist not found');
+                const artistData = await response.json();
+                document.getElementById('artistInfo').innerHTML = artistData.length > 0 
+                    ? `<h2>${artistData[0].name}</h2>` 
+                    : `<p>No artist found</p>`;
+            } catch (error) {
+                document.getElementById('artistInfo').innerText = error.message;
+            }
+        });
+    </script>
+</body>
+</html>

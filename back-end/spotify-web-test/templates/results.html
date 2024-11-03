@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #1DB954; /* Spotify green */
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 10px 0;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #1DB954; /* Spotify green */
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        button:hover {
+            background-color: #1aa34a; /* Darker green on hover */
+        }
+    </style>
+</head>
+<body>
+    <h1>Search Results</h1>
+    {% if error %}
+        <p>{{ error }}</p>
+    {% else %}
+        <h2>Artist: {{ artist['name'] }}</h2>
+        <h3>Top Tracks:</h3>
+        <ul>
+            {% for song in songs %}
+                <li>
+                    {{ song['name'] }} - 
+                    {% if song['preview_url'] %}
+                        <a href="{{ song['preview_url'] }}" target="_blank">Preview</a>
+                    {% else %}
+                        No preview available
+                    {% endif %}
+                    
+                    <form action="/like_song" method="post" style="display:inline;">
+                        <input type="hidden" name="song_id" value="{{ song['id'] }}">
+                        <button type="submit">Passion</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <a href="/">Back to Search</a>
+</body>
+</html>
