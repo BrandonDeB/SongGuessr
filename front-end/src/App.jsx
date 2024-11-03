@@ -15,14 +15,15 @@ export default function App() {
         const [streak, setStreak] = useState(0);
         const [profilePic, setProfilePic] = useState(null);
         const [leaderBoard, setLeaderBoard] = useState(null);
+        const [correct, setCorrect] = useState("CORRECT!");
         const [currentSong, setCurrentSong] = useState(
             {
-                title: "Song og the Year",
-                artist: "The PPPP boys",
-                image: "http://bloximages.chicago2.vip.townnews.com/thestar.com/content/tncms/assets/v3/editorial/a/df/adf7bfb8-92a4-11ef-8a90-8f3a011c5db5/671b4be244139.image.jpg?resize=400%2C400",
-                preview: "url2",
+                song_name: "Song og the Year",
+                artist_name: "The PPPP boys",
+                album_image: "http://bloximages.chicago2.vip.townnews.com/thestar.com/content/tncms/assets/v3/editorial/a/df/adf7bfb8-92a4-11ef-8a90-8f3a011c5db5/671b4be244139.image.jpg?resize=400%2C400",
+                preview_url: "url2",
                 id:"",
-                country: "Latvia"
+                country: "US"
             }
         )
         const [leaderboard, setLeaderboard] = useState([
@@ -33,8 +34,8 @@ export default function App() {
         const [isPopupOpen, setIsPopupOpen] = useState(false);
 
         const closePopup = () => {
-            setIsPopupOpen(false);
             nextSong();
+            setIsPopupOpen(false);
         }
 
         const Popup = () => {
@@ -43,11 +44,11 @@ export default function App() {
                     {isPopupOpen && (
                         <div className="modal">
                             <div className="content">
-                                <h1 style={{color: 'green'}}>CORRECT ANSWER!</h1>
+                                <h1 style={{color: 'green'}}>{correct}</h1>
                                 <h2>This song is from {currentSong.country}</h2>
-                                <img className= "songImage" src={currentSong.image} alt={"Song pic"}/>
-                                <h2>{currentSong.title}</h2>
-                                <h2>{currentSong.artist}</h2>
+                                <img className= "songImage" src={currentSong.album_image.url} alt={"Song pic"}/>
+                                <h2>{currentSong.song_name}</h2>
+                                <h2>{currentSong.artist_name}</h2>
 
                                 <div className="popButtons">
                                     <button onClick={closePopup} type="button">Next Song</button>
@@ -72,7 +73,7 @@ export default function App() {
                 .then(response => response.json())
                 .then(json => setLeaderBoard(json))
                 .catch(error => console.error(error));
-                nextSong();
+            nextSong();
         }, []);
 
     const handleHexPolygonClick = (polygon) => {
@@ -85,11 +86,14 @@ export default function App() {
     //Make pop-up show up, add to streak if correct
     const handleConfirmGuess = () => {
 
+        if (selectedCountry === currentSong.country) {
+            setCorrect("CORRECT");
+        } else {
+            setCorrect("INCORRECT");
+        }
         setIsPopupOpen(true);
         setStreak(streak + 1);
 
-
-        nextSong()
        // alert("IT WORKED");
 
     };
@@ -153,13 +157,16 @@ export default function App() {
                     <h2>{selectedAbbr}</h2>
 
                     <div className="songPlayer">
-
+                        <audio key={currentSong.id} controls>
+                            <source src={currentSong.preview_url} type="audio/mp3"/>
+                            Your browser does not support the audio element.
+                        </audio>
                     </div>
                 </div>
 
 
                 <div className="button">
-                <button type="button" onClick={handleConfirmGuess}>Confirm Guess</button>
+                    <button type="button" onClick={handleConfirmGuess}>Confirm Guess</button>
 
                 </div>
 
