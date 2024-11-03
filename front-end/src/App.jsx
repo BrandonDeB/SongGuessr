@@ -18,6 +18,7 @@ export default function App() {
                 artist: "The PPPP boys",
                 image: "url",
                 preview: "",
+                id:"",
                 country: ""
             }
         )
@@ -54,10 +55,12 @@ export default function App() {
                 setColors((prevArray) => [...prevArray, `#${Math.round(Math.random() * Math.pow(2, 24)).toString(16).padStart(6, '0')}`]);
             }
             fetch('../public/ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
-            fetch('https://localhost:5000/get-streak')
+            fetch('http://localhost:5000/get-streak')
                 .then(response => response.json())
                 .then(json => setLeaderBoard(json))
                 .catch(error => console.error(error));
+
+                nextSong();
         }, []);
 
     const handleHexPolygonClick = (polygon) => {
@@ -80,7 +83,7 @@ export default function App() {
     };
 
     const sendStreak = (streak) => {
-        fetch('https://localhost:5000/set-streak', {method: 'POST', // or 'PUT'
+        fetch('http://localhost:5000/set-streak', {method: 'POST', // or 'PUT'
             headers: { 'Content-Type': 'application/json',},
             body: JSON.stringify(streak),
         })
@@ -90,7 +93,7 @@ export default function App() {
     }
 
     const getProfilePic = () => {
-        fetch('https://localhost:5000/profile-pic')
+        fetch('http://localhost:5000/profile-pic')
         .then(response => response.json())
         .then(json => setProfilePic(json["url"]))
         .catch(error => console.error(error));
@@ -102,7 +105,7 @@ export default function App() {
             country_codes.push(countries.features[i].properties.ISO_A2);
         }
         console.log(country_codes);
-        fetch('https://localhost:5000/next-song', {method: 'POST', // or 'PUT'
+        fetch('http://localhost:5000/next-song', {method: 'POST', // or 'PUT'
             headers: { 'Content-Type': 'application/json',},
             body: JSON.stringify(country_codes),
             })
@@ -111,7 +114,7 @@ export default function App() {
             .catch(error => console.error(error));
 
     };
-
+    
         return (
             <>
                 <Globe class="globe"
@@ -137,7 +140,7 @@ export default function App() {
                     <h2>{selectedAbbr}</h2>
 
                     <div className="songPlayer">
-
+                        <href a ="{{currentSong['preview'] }}"></href>
                     </div>
                 </div>
 

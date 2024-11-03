@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask_cors import CORS
 import os
 import json
 import base64
@@ -10,6 +11,8 @@ import urllib.parse
 
 app = Flask(__name__) # flask app : spotify-intergration
 app.secret_key = os.urandom(24)  # You should set a proper secret key
+CORS(app, origins=["http://localhost:5173"])  # Adjust port if your React app runs on a different port
+
 
 load_dotenv() # loads the .env file 
 CLIENT_ID = os.getenv("CLIENT_ID") # is the client id 
@@ -36,11 +39,22 @@ def get_token(): #gets the token using the CLIENT_ID and CLIENT_SECRET
 def get_auth_head(token): #makes an authorization header 
     return {"Authorization": f"Bearer {token}"}
 
-def search_artist(token, art_name): #searches for an artist profile using the token and the artist name
-    url =  SEARCH_URL
+def search_artist(token, art_name):
+    """Search for an artist profile using the token and the artist name."""
+    url = SEARCH_URL
     headers = get_auth_head(token)
-    result = get(f"{url}?q={art_name}&type=artist&limit=1", headers=headers)
-    return result.json()["artists"]["items"][0] if result.json()["artists"]["items"] else None
+
+    try:
+        response = get(f"{url}?q={art_name}&type=artist&limit=1", headers=headers)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        artists = response.json().get("artists", {}).get("items", [])
+        
+        return artists[0] if artists else None
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
 
 def get_songs_by_artist(token, art_id): # searches for the songs associated with an artist id (uses their top tracks currently)
     url = f"https://api.spotify.com/v1/artists/{art_id}/top-tracks?country=US"
@@ -51,7 +65,7 @@ def get_songs_by_artist(token, art_id): # searches for the songs associated with
 def index():
     return render_template('index.html')
 
-@app.route('/search', methods=['POST'])  # flask route to the search results given the artist name. 
+@app.route('/search') # flask route to the search results given the artist name. 
 def search():
     artist_name = request.form['artist_name']
     token = get_token()
@@ -125,7 +139,7 @@ def add_song(token, song_id):
 
 
 
-@app.route('/like_song', methods=['POST'])
+@app.route('/like-song', methods=['GET', 'POST'])
 def like_song():
     print("entered like_song: ")
     print(session)
@@ -151,44 +165,82 @@ def like_song():
 
 
 
-@app.route('/next_song', methods=['POST'])
-def next_song():
-    #print(os.getcwd())
-    with open("countryArtistDict.json") as f:
-        # Load the JSON data into a Python dictionary
-        data = json.load(f)
-        country_codes = list(data.keys())
-       # for i in range(0,10):
-           # print(random.choice(country_codes))
-        country= random.choice(country_codes)
-        artist= random.choice(data[country])
-        api_token =get_token()
-        art_spotify= search_artist(api_token, artist['name'])
-        if(art_spotify!= None):
-            songs=get_songs_by_artist(get_token(),art_spotify["id"]);
-            if (songs!={}):
-                song= random.choice(songs)
-                #print(song)
-                #print(f"{song["name"]} by {art_spotify["name"]}| {song["album"]["images"][0]} | {song["preview_url"]}  {country}")
-                
-                temp_json = {
-                    "song_name": song["name"],
-                    "artist_name": art_spotify["name"],
-                    "album_image": song["album"]["images"][0],
-                    "preview_url": song["preview_url"],
-                    "country": country
-                }
-                
-                # Convert the dictionary to a JSON string
-                temp_json_str = json.dumps(temp_json)
-                return temp_json_str
-               
-        return None
-            #print(artist)
-       
 
-# Now you can access the data in the variable 'data'
-    
+@app.route('/next-song', methods=['GET', 'POST'])
+def next_song():
+    """Fetch a random song from a randomly selected country artist."""
+    try:
+        with open("countryArtistDict.json") as f:
+            data = json.load(f)
+
+        country_codes = list(data.keys())
+        api_token = get_token()
+
+        while True:
+            country = random.choice(country_codes)
+            artist = random.choice(data[country])
+            art_spotify = search_artist(api_token, artist['name'])
+
+            # Retry searching for the artist if not found
+            attempts = 0
+            while art_spotify is None and attempts < 5:
+                print(f"Retrying search for artist: {artist['name']}, Attempt: {attempts + 1}")
+                attempts += 1
+                art_spotify = search_artist(api_token, artist['name'])
+
+            if art_spotify is None:
+                print(f"Artist {artist['name']} not found after multiple attempts.")
+                continue  # Try a new artist
+
+            songs = get_songs_by_artist(api_token, art_spotify["id"])
+            if not songs:
+                print(f"No songs found for artist: {art_spotify['name']}. Trying a new artist.")
+                continue  # Try a new artist
+
+            # Filter songs to include only those with a valid preview_url
+            valid_songs = [song for song in songs if song.get("preview_url")]
+
+            if not valid_songs:
+                print(f"No valid songs with preview_url found for artist: {art_spotify['name']}. Trying a new artist.")
+                continue  # Try a new artist
+
+            # Select a song randomly from the valid songs
+            song = random.choice(valid_songs)
+
+            temp_json = {
+                "song_name": song["name"],
+                "artist_name": art_spotify["name"],
+                "album_image": song["album"]["images"][0] if song["album"]["images"] else None,
+                "preview_url": song["preview_url"],
+                "id": song["id"],
+                "country": country
+            }
+
+            return (
+                json.dumps(temp_json),  # Convert the dictionary to a JSON string
+                200,
+                {'Content-Type': 'application/json'}
+            )
+
+    except FileNotFoundError:
+        return (
+            '{"error": "The country artist dictionary file was not found."}', 
+            500, 
+            {'Content-Type': 'application/json'}
+        )
+    except json.JSONDecodeError:
+        return (
+            '{"error": "Error decoding JSON from the country artist dictionary."}', 
+            500, 
+            {'Content-Type': 'application/json'}
+        )
+    except Exception as e:
+        return (
+            f'{{"error": "{str(e)}"}}', 
+            500, 
+            {'Content-Type': 'application/json'}
+        )
+
 def main():
     app.run(debug=True)
 
@@ -196,7 +248,8 @@ if __name__ == '__main__': #if this program is the main program run main ()
     ##art_id= search_artist(get_token(), "Lil Uzi Vert")
     ##songs= get_songs_by_artist(get_token(), art_id["id"])
     ##print(songs[0]["id"])
-    temp_song= next_song()
-    print(temp_song)
+    #for  i in range(1, 31):
+       # temp_song= next_song()
+       # print(f"{i} : :{temp_song}")
     main()
 
