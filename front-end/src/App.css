@@ -29,11 +29,10 @@ body {
 }
 
 .songPlayer {
-  margin-top: 10px; /* Space between headers and the rectangle */
-  height: 50px;
-  width: 200px;
-  background-color: #ff0000;
-}
+  margin: 50px; /* Space between headers and the rectangle */
+  top: 55%;
+  position: absolute;
+  }
 
 .button button {
   margin: 10px;
@@ -46,11 +45,15 @@ body {
 
 }
 
+.button button:hover {
+  opacity: 100%;
+ }
+
 h3{
   color: white;
   margin: 0;
   position: absolute;
-  top: 90%;
+  top: 90.7%;
   left: 56.5%;
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
@@ -58,7 +61,7 @@ h3{
 
 .streak{
 
-  top: 90%;
+  top: 90.7%;
   left: 55%;
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
@@ -76,7 +79,7 @@ h3{
   position: absolute;
   height: 50px;
   width: 200px;
-  background-color: #ff0000;
+  opacity: 70%;
 }
 
 .leaderboard{

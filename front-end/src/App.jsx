@@ -136,7 +136,7 @@ export default function App() {
     const login_user = () => {
         window.location.href = 'http://localhost:5000/login'; // Redirect to your login route
     }
-    
+
 
     const nextSong = () => {
         let country_codes = []
@@ -194,7 +194,7 @@ export default function App() {
                 </div>
 
 
-                <img className="streak" src="../public/fireEmoji.jpg" alt={"loser"}/>
+                <img className="streak" src="../public/fireGif.gif" alt={"loser"}/>
                 <h3>{streak}</h3>
 
                 <div className="profile">
@@ -202,7 +202,6 @@ export default function App() {
                 <img src={profilePic} alt="Profile" className="profile-pic" />
                      ) : (
                     <>
-             <h2>Login</h2>
                      <button type="button" onClick={handleLogin}>Login</button>
                 </>
                     )}
