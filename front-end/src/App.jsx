@@ -9,6 +9,11 @@ export default function App() {
         const [selectedAbbr, setSelectedAbbr] = useState("NULL");
         const [colors, setColors] = useState([])
         let [streak, setStreak] = useState(0);
+    const [leaderboard, setLeaderboard] = useState([
+        { name: 'Landon', streak: 100 },
+        { name: 'Koby', streak: 2 },
+        { name: 'Brandon', streak: 1 },
+    ]);
 
 
         useEffect(() => {
@@ -68,7 +73,22 @@ export default function App() {
                 <h3>{streak}</h3>
 
                 <div className="profile"></div>
-                <div className="leaderboard"></div>
+
+                <div className="songPlayer">
+
+                </div>
+
+
+                <div className="leaderboard">
+                    <h2>Leaderboards:</h2>
+                    {leaderboard.map((profile, index) => (
+                        <div key={index} className="leaderboardCard">
+                            <h4>{profile.name} | Score: {profile.streak}</h4>
+                        </div>
+                    ))}
+
+
+                </div>
 
 
 
