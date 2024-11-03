@@ -14,9 +14,9 @@ export default function App() {
         const [leaderBoard, setLeaderBoard] = useState(null);
         const [currentSong, setCurrentSong] = useState(
             {
-                title: "",
-                artist: "",
-                image: "",
+                title: "Song og the Year",
+                artist: "The PPPP boys",
+                image: "url",
                 preview: "",
                 country: ""
             }
@@ -26,6 +26,27 @@ export default function App() {
             { name: 'Koby', streak: 2 },
             { name: 'Brandon', streak: 1 },
         ]);
+        const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+        const closePopup = () => {
+            setIsPopupOpen(false);
+        }
+
+        const Popup = () => {
+            return (
+                <div>
+                    {isPopupOpen && (
+                        <div className="modal">
+                            <div className="content">
+                                <h1 style={{ color: 'green' }}>CORRECT ANSWER!</h1>
+                                <h2>{useState(county)}</h2>
+                                <a href="#" className="close" onClick={closePopup}>&times;</a>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
 
 
         useEffect(() => {
@@ -51,6 +72,8 @@ export default function App() {
 
         setIsPopupOpen(true);
         setStreak(streak + 1);
+
+
         nextSong()
        // alert("IT WORKED");
 
@@ -143,10 +166,7 @@ export default function App() {
                         </div>
                     ))}
 
-
                 </div>
-
-
 
 
             </>
