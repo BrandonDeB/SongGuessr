@@ -24,3 +24,4 @@ yarn-error.log*
 
 
 back-end/.env
+back-end/spotify-web-test/countryArtistDict.json
