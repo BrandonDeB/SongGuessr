@@ -15,8 +15,9 @@ export default function App() {
         const [streak, setStreak] = useState(0);
         const [profilePic, setProfilePic] = useState(null);
         const [leaderBoard, setLeaderBoard] = useState(null);
-        const [correct, setCorrect] = useState("CORRECT!");
-        const [currentSong, setCurrentSong] = useState(
+        const [correct, setCorrect] = useState(<h1 style={{color: 'green'}}>CORRECT</h1>);
+        const [iso, setIso] = useState(null);
+    const [currentSong, setCurrentSong] = useState(
             {
                 song_name: "Song og the Year",
                 artist_name: "The PPPP boys",
@@ -38,14 +39,23 @@ export default function App() {
             setIsPopupOpen(false);
         }
 
+        function getCountbyIso(isoSearch) {
+            for(let i = 0; i < iso.length; i++) {
+                if (iso[i].alpha == isoSearch) {
+                    return iso[i].name;
+                }
+            }
+            return "not found"
+        }
+
         const Popup = () => {
             return (
                 <div>
                     {isPopupOpen && (
                         <div className="modal">
                             <div className="content">
-                                <h1 style={{color: 'green'}}>{correct}</h1>
-                                <h2>This song is from {currentSong.country}</h2>
+                                {correct}
+                                <h2>This song is from {getCountbyIso(currentSong.country)}</h2>
                                 <img className= "songImage" src={currentSong.album_image.url} alt={"Song pic"}/>
                                 <h2>{currentSong.song_name}</h2>
                                 <h2>{currentSong.artist_name}</h2>
@@ -69,6 +79,7 @@ export default function App() {
                 setColors((prevArray) => [...prevArray, `#${Math.round(Math.random() * Math.pow(2, 24)).toString(16).padStart(6, '0')}`]);
             }
             fetch('../public/ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
+            fetch('../public/slim-2.json').then(res => res.json()).then(setIso);
             fetch('http://localhost:5000/get-streak')
                 .then(response => response.json())
                 .then(json => setLeaderBoard(json))
@@ -85,11 +96,12 @@ export default function App() {
 
     //Make pop-up show up, add to streak if correct
     const handleConfirmGuess = () => {
-
-        if (selectedCountry === currentSong.country) {
-            setCorrect("CORRECT");
+        console.log(currentSong.country);
+        console.log(selectedCountry);
+        if (selectedAbbr == currentSong.country) {
+            setCorrect(<h1 style={{color: 'green'}}>CORRECT</h1>);
         } else {
-            setCorrect("INCORRECT");
+            setCorrect(<h1 style={{color: 'red'}}>INCORRECT</h1>);
         }
         setIsPopupOpen(true);
         setStreak(streak + 1);
