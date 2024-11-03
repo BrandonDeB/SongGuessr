@@ -242,6 +242,7 @@ def next_song():
             {'Content-Type': 'application/json'}
         )
 
+@app.route('/profile-pic', methods=['GET', 'POST'])
 def get_profile_picture(token):
    
      user_info = validate_user(token)
