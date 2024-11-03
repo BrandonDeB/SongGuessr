@@ -95,19 +95,20 @@ def validate_user(token):
 
 @app.route('/callback')  # Return to the last page 
 def callback():
-
     code = request.args.get('code')
     token_data = exchange_code_for_token(code)
 
     # Check if the request was successful
     if 'access_token' in token_data:
         session['access_token'] = token_data['access_token']
-        #print(validate_user(session['access_token']))
+        profile_pic_url = get_profile_picture(session['access_token'])
+        session['profile_pic'] = profile_pic_url  # Save it in session or handle it as needed
         return redirect(url_for('index'))
     else:
         # Handle errors (e.g., log the error, show a message, etc.)
         error_message = token_data.get('error', 'Unknown error')
         return f"Error obtaining access token: {error_message}", 400
+
     
 
 def exchange_code_for_token(code):  # uses the token to get an auth code (remember that the auth_code expires every 3600 seconds aka 1 hour)
@@ -240,6 +241,13 @@ def next_song():
             500, 
             {'Content-Type': 'application/json'}
         )
+
+def get_profile_picture(token):
+   
+     user_info = validate_user(token)
+     if user_info and 'images' in user_info and user_info['images']:
+        return user_info['images'][0]['url']  # Get the first image URL
+     return None  # Return None if no image is found
 
 def main():
     app.run(debug=True)
