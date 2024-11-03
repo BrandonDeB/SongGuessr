@@ -7,19 +7,32 @@ body {
   padding: 0;
 }
 
-#countryText {
+.countryText {
   position: absolute;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
   color: #ffffff;
-
+  margin: 5px;
   top: 5%;
   left: 50%;
   transform: translateX(-50%);
   opacity: 70%;
+  flex-direction: column;
+}
 
+.countryText h1,
+.countryText h2 {
+  margin: 0 10px;
+  flex-direction: row;
+}
+
+.songPlayer {
+  margin-top: 10px; /* Space between headers and the rectangle */
+  height: 50px;
+  width: 200px;
+  background-color: #ff0000;
 }
 
 button {
@@ -65,18 +78,6 @@ h3{
   background-color: #ff0000;
 }
 
-.songPlayer {
-  top: 13%;
-  left: 50%;
-  transform: translateX(-50%);
-  justify-content: center;
-  -ms-transform: translate(-50%, -50%);
-  position: absolute;
-  height: 50px;
-  width: 200px;
-  background-color: #ff0000;
-}
-
 .leaderboard{
   position: absolute;
   top: 0;
@@ -92,12 +93,11 @@ h3{
 
   top: 5%;
   left: 5%;
-  padding-bottom: 5px;
 
 
   margin: 5px;
-  height: 60px;
-  width: 200px;
+  height: 50%;
+  width: 100%;
   border-radius: 5px;
   background-color: #ffffff;
   opacity: 70%;
