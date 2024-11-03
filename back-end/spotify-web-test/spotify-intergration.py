@@ -108,6 +108,7 @@ def like_song():
     result = add_song(token, song_id)  # Call the function to add the song
 
     if result:
+        print("Song was liked\S")
         return redirect(url_for('index'))  # Redirect after liking the song
     else:
         return "Error liking the song", 400

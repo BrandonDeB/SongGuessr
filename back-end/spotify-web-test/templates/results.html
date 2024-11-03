@@ -51,6 +51,7 @@
                     {% endif %}
                     
                     <form action="/like_song" method="post" style="display:inline;">
+                        {{song['id']}}
                         <input type="hidden" name="song_id" value="{{ song['id'] }}">
                         <button type="submit">Passion</button>
                     </form>
