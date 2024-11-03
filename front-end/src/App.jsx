@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import Globe from 'react-globe.gl';
 
+
 export default function App() {
         const [countries, setCountries] = useState({features: []});
         const [selectedCountry, setSelectedCountry] = useState("Nothing Selected");
         const [selectedAbbr, setSelectedAbbr] = useState("NULL");
         const [colors, setColors] = useState([])
+        let [streak, setStreak] = useState(0);
+
 
         useEffect(() => {
             for(let i = 0; i < 50; i++){
@@ -23,29 +26,56 @@ export default function App() {
         setSelectedCountry(polygon.properties.ADMIN);
     };
 
-  return (
-      <>
-          <Globe class="globe"
-              globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
+    //Make pop-up show up, add to streak if correct
+    const handleConfirmGuess = () => {
 
-              hexPolygonsData={countries.features}
-              hexPolygonResolution={3}
-              hexPolygonMargin={0.1}
-              hexPolygonUseDots={true}
-              hexPolygonColor={({ properties: d }) =>
-                `${colors.at(d.MAPCOLOR13)}`
-              }
-              hexPolygonLabel={({ properties: d }) => `
+
+        setStreak(streak + 1);
+       // alert("IT WORKED");
+
+    };
+
+        return (
+            <>
+                <Globe class="globe"
+                       globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
+
+                       hexPolygonsData={countries.features}
+                       hexPolygonResolution={3}
+                       hexPolygonMargin={0.1}
+                       hexPolygonUseDots={true}
+                       hexPolygonColor={({properties: d}) =>
+                           `${colors.at(d.MAPCOLOR13)}`
+                       }
+                       hexPolygonLabel={({properties: d}) => `
                 <b>${d.ADMIN} (${d.ISO_A2})</b>
               `}
-             onHexPolygonClick={handleHexPolygonClick}
-          />
+                       onHexPolygonClick={handleHexPolygonClick}
+                />
 
-          <div>
-              <h1>{selectedCountry}</h1>
-              <h2>{selectedAbbr}</h2>
-          </div>
+                <div id="countryText">
+                    <h1>{selectedCountry}</h1>
+                    <h2>{selectedAbbr}</h2>
+                </div>
 
-      </>
-  )
+
+                <div id="button">
+                    <button type="button" onClick={handleConfirmGuess}>Confirm Guess</button>
+                </div>
+
+
+                <img className="streak" src="../public/fireEmoji.jpg" alt={"loser"}/>
+                <h3>{streak}</h3>
+
+                <div className="profile"></div>
+                <div className="leaderboard"></div>
+
+
+
+
+            </>
+        )
+
 }
+
+
