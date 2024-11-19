@@ -85,7 +85,7 @@ export default function App() {
         useEffect(() => {
             fetch('../ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
             fetch('../slim-2.json').then(res => res.json()).then(setIso);
-            fetch('http://34.207.133.238:5000/get-streak')
+            fetch('http://54.145.176.88:5000/get-streak')
                 .then(response => response.json())
                 .then(json => setLeaderBoard(json))
                 .catch(error => console.error(error));
@@ -126,7 +126,7 @@ export default function App() {
     };
 
     const sendStreak = (streak) => {
-        fetch('http://34.207.133.238:5000/set-streak', {method: 'POST', // or 'PUT'
+        fetch('http://54.145.176.88:5000/set-streak', {method: 'POST', // or 'PUT'
             headers: { 'Content-Type': 'application/json',},
             body: JSON.stringify(streak),
             crossDomain: true
@@ -137,13 +137,13 @@ export default function App() {
     }
 
     const getProfilePic = () => {
-        fetch('http://34.207.133.238:5000/profile-pic')
+        fetch('http://54.145.176.88:5000/profile-pic')
         .then(response => response.json())
         .then(json => setProfilePic(json["url"]))
         .catch(error => console.error(error));
     }
     const login_user = () => {
-        window.location.href = 'http://34.207.133.238:5000/login'; // Redirect to your login route
+        window.location.href = 'http://54.145.176.88:5000/login'; // Redirect to your login route
     }
 
     const load_songs = async () => {
@@ -151,7 +151,7 @@ export default function App() {
         for (let i = 0; i < countries.features.length; i++) {
             country_codes.push(countries.features[i].properties.ISO_A2);
         }
-        await fetch('http://34.207.133.238:5000/next-song', {
+        await fetch('http://54.145.176.88:5000/next-song', {
             method: 'POST', // or 'PUT'
             headers: {'Content-Type': 'application/json',},
             crossDomain: true,
@@ -160,7 +160,7 @@ export default function App() {
             .then(response => response.json())
             .then(json => setCurrentSong(json))
             .catch(error => console.error(error));
-        fetch('http://34.207.133.238:5000/next-song', {
+        fetch('http://54.145.176.88:5000/next-song', {
             method: 'POST', // or 'PUT'
             headers: {'Content-Type': 'application/json',},
             crossDomain: true,
@@ -178,7 +178,7 @@ export default function App() {
             country_codes.push(countries.features[i].properties.ISO_A2);
         }
         setCurrentSong(bufferSong);
-        fetch('http://34.207.133.238:5000/next-song', {
+        fetch('http://54.145.176.88:5000/next-song', {
             method: 'POST', // or 'PUT'
             headers: {'Content-Type': 'application/json',},
             crossDomain: true,
