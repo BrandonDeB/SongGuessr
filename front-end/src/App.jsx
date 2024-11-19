@@ -3,16 +3,14 @@ import './App.css'
 import './correctPop.css';
 import Globe from 'react-globe.gl';
 import  './heart.css';
-import {FiHeart} from "react-icons/fi";
 
 
 export default function App() {
 
-
     const [countries, setCountries] = useState({features: []});
     const [selectedCountry, setSelectedCountry] = useState("Nothing Selected");
     const [selectedAbbr, setSelectedAbbr] = useState("NULL");
-    const [colors, setColors] = useState([])
+    const [colors, setColors] = useState(getColors());
     const [streak, setStreak] = useState(0);
     const [profilePic, setProfilePic] = useState(null);
     const [leaderBoard, setLeaderBoard] = useState(null);
@@ -20,22 +18,10 @@ export default function App() {
     const [iso, setIso] = useState(null);
     const [currentSong, setCurrentSong] = useState(
             {
-                song_name: "Song og the Year",
-                artist_name: "The PPPP boys",
-                album_image: "http://bloximages.chicago2.vip.townnews.com/thestar.com/content/tncms/assets/v3/editorial/a/df/adf7bfb8-92a4-11ef-8a90-8f3a011c5db5/671b4be244139.image.jpg?resize=400%2C400",
-                preview_url: "url2",
-                id:"",
-                country: "US"
             }
         );
     const [bufferSong, setBufferSong] = useState(
         {
-            song_name: "Song og the Year",
-            artist_name: "The PPPP boys",
-            album_image: "http://bloximages.chicago2.vip.townnews.com/thestar.com/content/tncms/assets/v3/editorial/a/df/adf7bfb8-92a4-11ef-8a90-8f3a011c5db5/671b4be244139.image.jpg?resize=400%2C400",
-            preview_url: "url2",
-            id:"",
-            country: "US"
         }
     );
     const [leaderboard, setLeaderboard] = useState([
@@ -48,6 +34,14 @@ export default function App() {
     const closePopup = () => {
         nextSong();
         setIsPopupOpen(false);
+    }
+
+    function getColors() {
+        let colorArr = []
+        for (let i = 0; i < 50; i++) {
+            colorArr.push(Math.round(Math.random() * Math.pow(2, 24)).toString(16).padStart(6, '0'));
+        }
+        return colorArr;
     }
 
         function getCountbyIso(isoSearch) {
@@ -89,9 +83,6 @@ export default function App() {
 
 
         useEffect(() => {
-            for (let i = 0; i < 50; i++) {
-                setColors((prevArray) => [...prevArray, `#${Math.round(Math.random() * Math.pow(2, 24)).toString(16).padStart(6, '0')}`]);
-            }
             fetch('../ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
             fetch('../slim-2.json').then(res => res.json()).then(setIso);
             fetch('http://localhost:5000/get-streak')
@@ -102,8 +93,6 @@ export default function App() {
         }, []);
 
     const handleHexPolygonClick = (polygon) => {
-        console.log('Country: ', polygon.properties.ADMIN);
-        console.log('Abbreviation: ', polygon.properties.ISO_A2);
         setSelectedAbbr(polygon.properties.ISO_A2);
         setSelectedCountry(polygon.properties.ADMIN);
     };
@@ -206,13 +195,12 @@ export default function App() {
                        hexPolygonsData={countries.features}
                        hexPolygonResolution={3}
                        hexPolygonMargin={0.1}
-                       hexPolygonUseDots={true}
-                       hexPolygonColor={({properties: d}) =>
-                           `${colors.at(d.MAPCOLOR13)}`
-                       }
+                       hexPolygonColor={({properties: d}) => 
+                            `#${colors[d.MAPCOLOR9]}`
+                        }
                        hexPolygonLabel={({properties: d}) => `
-                <b>${d.ADMIN} (${d.ISO_A2})</b>
-              `}
+                            <b>${d.ADMIN} (${d.ISO_A2})</b>
+                        `}
                        onHexPolygonClick={handleHexPolygonClick}
                 />
 
