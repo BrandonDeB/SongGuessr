@@ -129,6 +129,7 @@ export default function App() {
         fetch('http://localhost:5000/set-streak', {method: 'POST', // or 'PUT'
             headers: { 'Content-Type': 'application/json',},
             body: JSON.stringify(streak),
+            crossDomain: true
         })
             .then(response => response.json())
             .then(json => setLeaderBoard(json))
@@ -153,6 +154,7 @@ export default function App() {
         await fetch('http://localhost:5000/next-song', {
             method: 'POST', // or 'PUT'
             headers: {'Content-Type': 'application/json',},
+            crossDomain: true,
             body: JSON.stringify(country_codes),
         })
             .then(response => response.json())
@@ -161,6 +163,7 @@ export default function App() {
         fetch('http://localhost:5000/next-song', {
             method: 'POST', // or 'PUT'
             headers: {'Content-Type': 'application/json',},
+            crossDomain: true,
             body: JSON.stringify(country_codes),
         })
             .then(response => response.json())
@@ -178,6 +181,7 @@ export default function App() {
         fetch('http://localhost:5000/next-song', {
             method: 'POST', // or 'PUT'
             headers: {'Content-Type': 'application/json',},
+            crossDomain: true,
             body: JSON.stringify(country_codes),
         })
             .then(response => response.json())
