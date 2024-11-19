@@ -11,7 +11,7 @@ import urllib.parse
 
 app = Flask(__name__) # flask app : spotify-intergration
 app.secret_key = os.urandom(24)  # You should set a proper secret key
-CORS(app, origins=["http://localhost:5173"])  # Adjust port if your React app runs on a different port
+CORS(app, origins=["http://localhost:3000"])  # Adjust port if your React app runs on a different port
 
 
 load_dotenv() # loads the .env file 
@@ -262,9 +262,6 @@ def get_profile_picture():
             return None
      return None  # Return None if no image is found
 
-def main():
-    app.run(debug=True)
-
 if __name__ == '__main__': #if this program is the main program run main () 
     ##art_id= search_artist(get_token(), "Lil Uzi Vert")
     ##songs= get_songs_by_artist(get_token(), art_id["id"])
@@ -272,5 +269,6 @@ if __name__ == '__main__': #if this program is the main program run main ()
     #for  i in range(1, 31):
        # temp_song= next_song()
        # print(f"{i} : :{temp_song}")
-    main()
+    from waitress import serve
+    serve(app, host="0.0.0.0", port=5000)
 
