@@ -7,12 +7,14 @@ import  './heart.css';
 
 export default function App() {
 
+    const BASE_URL = 'http://'+import.meta.env.VITE_BACKEND_IP+':'+import.meta.env.VITE_BACKEND_PORT;
+
     const [countries, setCountries] = useState({features: []});
     const [selectedCountry, setSelectedCountry] = useState("Nothing Selected");
     const [selectedAbbr, setSelectedAbbr] = useState("NULL");
     const [colors, setColors] = useState(getColors());
     const [streak, setStreak] = useState(0);
-    const [profilePic, setProfilePic] = useState(null);
+    const [profilePic, setProfilePic] = useState("fake");
     const [leaderBoard, setLeaderBoard] = useState(null);
     const [correct, setCorrect] = useState(<h1 style={{color: 'green'}}>CORRECT</h1>);
     const [iso, setIso] = useState(null);
@@ -44,7 +46,7 @@ export default function App() {
         return colorArr;
     }
 
-        function getCountbyIso(isoSearch) {
+        function getCountByIso(isoSearch) {
             for(let i = 0; i < iso.length; i++) {
                 if (iso[i].alpha == isoSearch) {
                     return iso[i].name;
@@ -62,7 +64,7 @@ export default function App() {
                                 <div className="contentText">
                                 {correct}
 
-                                <h2>This song is from {getCountbyIso(currentSong.country)}</h2>
+                                <h2>This song is from {getCountByIso(currentSong.country)}</h2>
                                 <img className= "songImage" src={currentSong.album_image.url} alt={"Song pic"}/>
                                 <h2>{currentSong.song_name}</h2>
                                 <h2>{currentSong.artist_name}</h2>
@@ -85,11 +87,12 @@ export default function App() {
         useEffect(() => {
             fetch('../ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
             fetch('../slim-2.json').then(res => res.json()).then(setIso);
-            fetch('http://54.145.176.88:5000/get-streak')
+            fetch(BASE_URL+'/get-streak')
                 .then(response => response.json())
                 .then(json => setLeaderBoard(json))
                 .catch(error => console.error(error));
-            load_songs();
+            //load_songs();
+            getProfilePic()
         }, []);
 
     const handleHexPolygonClick = (polygon) => {
@@ -120,13 +123,12 @@ export default function App() {
     const handleLogin = () => {
 
         login_user();
-        getProfilePic();
        // alert("IT WORKED");
 
     };
 
     const sendStreak = (streak) => {
-        fetch('http://54.145.176.88:5000/set-streak', {method: 'POST', // or 'PUT'
+        fetch(BASE_URL+'/set-streak', {method: 'POST', // or 'PUT'
             headers: { 'Content-Type': 'application/json',},
             body: JSON.stringify(streak),
             crossDomain: true
@@ -137,13 +139,17 @@ export default function App() {
     }
 
     const getProfilePic = () => {
-        fetch('http://54.145.176.88:5000/profile-pic')
+        fetch(BASE_URL+'/profile-pic', {
+            credentials: 'include',
+            crossDomain: true
+        })
         .then(response => response.json())
         .then(json => setProfilePic(json["url"]))
         .catch(error => console.error(error));
+        console.log(profilePic);
     }
     const login_user = () => {
-        window.location.href = 'http://54.145.176.88:5000/login'; // Redirect to your login route
+        window.location.href = BASE_URL+'/login'; // Redirect to your login route
     }
 
     const load_songs = async () => {
@@ -151,7 +157,8 @@ export default function App() {
         for (let i = 0; i < countries.features.length; i++) {
             country_codes.push(countries.features[i].properties.ISO_A2);
         }
-        await fetch('http://54.145.176.88:5000/next-song', {
+        console.log(country_codes);
+        await fetch(BASE_URL+'/next-song', {
             method: 'POST', // or 'PUT'
             headers: {'Content-Type': 'application/json',},
             crossDomain: true,
@@ -160,7 +167,7 @@ export default function App() {
             .then(response => response.json())
             .then(json => setCurrentSong(json))
             .catch(error => console.error(error));
-        fetch('http://54.145.176.88:5000/next-song', {
+        fetch(BASE_URL+'/next-song', {
             method: 'POST', // or 'PUT'
             headers: {'Content-Type': 'application/json',},
             crossDomain: true,
@@ -177,8 +184,9 @@ export default function App() {
         for (let i = 0; i < countries.features.length; i++) {
             country_codes.push(countries.features[i].properties.ISO_A2);
         }
+        console.log(country_codes);
         setCurrentSong(bufferSong);
-        fetch('http://54.145.176.88:5000/next-song', {
+        fetch(BASE_URL+'/next-song', {
             method: 'POST', // or 'PUT'
             headers: {'Content-Type': 'application/json',},
             crossDomain: true,
@@ -193,67 +201,64 @@ export default function App() {
 
         return (
             <>
-                <Globe class="globe"
-                       globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
+                    <Globe class="globe"
+                           globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
 
-                       hexPolygonsData={countries.features}
-                       hexPolygonResolution={3}
-                       hexPolygonMargin={0.1}
-                       hexPolygonColor={({properties: d}) => 
-                            `#${colors[d.MAPCOLOR9]}`
-                        }
-                       hexPolygonLabel={({properties: d}) => `
-                            <b>${d.ADMIN} (${d.ISO_A2})</b>
-                        `}
-                       onHexPolygonClick={handleHexPolygonClick}
-                />
+                           hexPolygonsData={countries.features}
+                           hexPolygonResolution={3}
+                           hexPolygonMargin={0.1}
+                           hexPolygonColor={({properties: d}) =>
+                                `#${colors[d.MAPCOLOR9]}`
+                            }
+                           hexPolygonLabel={({properties: d}) => `
+                                <b>${d.ADMIN} (${d.ISO_A2})</b>
+                            `}
+                           onHexPolygonClick={handleHexPolygonClick}
+                    />
 
-                <Popup />
+                    <Popup />
 
-                <div className="countryText">
-                    <h1>{selectedCountry}</h1>
-                    <h2>{selectedAbbr}</h2>
+                    <div className="countryText">
+                        <h1>{selectedCountry}</h1>
+                        <h2>{selectedAbbr}</h2>
 
-                    <div className="songPlayer">
-                        <audio key={currentSong.id} controls>
-                            <source src={currentSong.preview_url} type="audio/mp3"/>
-                            Your browser does not support the audio element.
-                        </audio>
+                        <div className="songPlayer">
+                            <audio key={currentSong.id} controls>
+                                <source src={currentSong.preview_url} type="audio/mp3"/>
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
                     </div>
+
+
+                    <div className="button">
+                        <button type="button" onClick={handleConfirmGuess}>Confirm Guess</button>
+
+                    </div>
+
+
+                    <img className="streak" src="../fireGif.gif" alt={"loser"}/>
+                    <h3>{streak}</h3>
+
+                    <div className="profile">
+                         {profilePic ? (
+                            <img src={profilePic} alt="Profile" className="profile-pic" />
+                         ) : (
+                            <button type="button" onClick={handleLogin}>Login</button>
+                         )}
                 </div>
 
 
-                <div className="button">
-                    <button type="button" onClick={handleConfirmGuess}>Confirm Guess</button>
+
+                <div className="leaderboard">
+                    <h2>Leaderboards:</h2>
+                    {leaderboard.map((profile, index) => (
+                        <div key={index} className="leaderboardCard">
+                            <h4>{profile.name} | Score: {profile.streak}</h4>
+                        </div>
+                    ))}
 
                 </div>
-
-
-                <img className="streak" src="../fireGif.gif" alt={"loser"}/>
-                <h3>{streak}</h3>
-
-            {/*    <div className="profile">*/}
-            {/*         {profilePic ? (*/}
-            {/*    <img src={profilePic} alt="Profile" className="profile-pic" />*/}
-            {/*         ) : (*/}
-            {/*        <>*/}
-            {/*         <button type="button" onClick={handleLogin}>Login</button>*/}
-            {/*    </>*/}
-            {/*        )}*/}
-            {/*</div>*/}
-
-
-
-                {/*<div className="leaderboard">*/}
-                {/*    <h2>Leaderboards:</h2>*/}
-                {/*    {leaderboard.map((profile, index) => (*/}
-                {/*        <div key={index} className="leaderboardCard">*/}
-                {/*            <h4>{profile.name} | Score: {profile.streak}</h4>*/}
-                {/*        </div>*/}
-                {/*    ))}*/}
-
-                {/*</div>*/}
-
 
             </>
         )
