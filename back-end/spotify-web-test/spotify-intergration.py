@@ -42,6 +42,7 @@ def get_token(): #gets the token using the CLIENT_ID and CLIENT_SECRET
     result = post(TOKEN_URL, headers=headers, data={"grant_type": "client_credentials"})
     return result.json()["access_token"]
 
+
 def get_auth_head(token): #makes an authorization header 
     return {"Authorization": f"Bearer {token}"}
 
@@ -274,9 +275,11 @@ def next_song():
     except Exception as e:
         return json.dumps({"error": str(e)}), 500, {'Content-Type': 'application/json'}
 
+next_song()
+
 @app.route('/profile-pic', methods=['GET', 'POST'])
 def get_profile_picture():
-    print(request.cookies.get("access_token"))
+    print(request.cookies.get("access_token")+" was your access token")
     token = request.cookies.get("access_token")
     if token:
          user_info = validate_user(token)
