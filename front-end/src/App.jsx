@@ -91,7 +91,7 @@ export default function App() {
                 .then(response => response.json())
                 .then(json => setLeaderBoard(json))
                 .catch(error => console.error(error));
-            //load_songs();
+            load_songs();
             getProfilePic()
         }, []);
 

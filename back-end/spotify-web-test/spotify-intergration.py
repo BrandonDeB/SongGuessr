@@ -10,6 +10,7 @@ import random
 import time
 import xml.etree.ElementTree as ET
 import urllib.parse
+import subprocess
 
 app = Flask(__name__) # flask app : spotify-intergration
 app.secret_key = os.urandom(24)  # You should set a proper secret key
@@ -21,7 +22,8 @@ CLIENT_ID = os.getenv("CLIENT_ID") # is the client id
 CLIENT_SECRET = os.getenv("CLIENT_SECRET") # is the client secret
 REDIRECT_URI = os.getenv("REDIRECT_URI")  # is the specified redirect url in the Spotify Dev interface
 
-with open("spotify-web-test/slim-2.json", "r", encoding="utf-8") as file:
+# Loads in the country codes available in the map
+with open("slim-2.json", "r", encoding="utf-8") as file:
     countries = json.load(file)
 COUNTRIES = [country["alpha"] for country in countries]
 
@@ -156,9 +158,6 @@ def add_song(token, song_id):
         print(f"Error: {response.status_code} - {response.text}")
         return False
 
-
-
-
 @app.route('/like-song', methods=['GET', 'POST'])
 def like_song():
     print("entered like_song: ")
@@ -198,91 +197,124 @@ def get_songs_by_artist(spotify_artist_id, token, market='US'):
     r = requests.get(url, headers=headers, params=params)
     return r.json().get("tracks", [])
 
-def build_song_json(song, artist, country):
+def build_song_json(song, artist, country, preview_url):
     return json.dumps({
         "song_name": song["name"],
         "artist_name": artist["name"],
         "album_image": song["album"]["images"][0] if song["album"]["images"] else None,
-        "preview_url": song["preview_url"],
+        "preview_url": preview_url,
         "id": song["id"],
         "country": country
     }), 200, {'Content-Type': 'application/json'}
+
+
+
+def get_total_artists_in_country(country):
+    search_url = "https://musicbrainz.org/ws/2/artist"
+    headers = {"User-Agent": "SongGuessr/1.0 ( brandonrdebaroncelli@gmail.com )",
+        "Accept": "application/json"
+    }
+    total_resp = requests.get(search_url, params={"query": f"country:{country}", "limit": 1}, headers=headers)
+    print(total_resp.json().get("count"))
+    total = total_resp.json().get("count")
+    time.sleep(1)
+    return total
+
+def get_random_artist_in_country(country, num_artists):
+    search_url = "https://musicbrainz.org/ws/2/artist"
+    headers = {"User-Agent": "SongGuessr/1.0 ( brandonrdebaroncelli@gmail.com )",
+        "Accept": "application/json"
+    }
+
+    offset = random.randint(0, num_artists - 1)
+    artist_resp = requests.get(search_url, params={"query": f"country:{country}", "limit": 1, "offset": offset}, headers=headers)
+    artists = artist_resp.json().get("artists", [])
+    if not artists:
+        return False
+    artist = artists[0]
+    if not artist:
+        return False
+    time.sleep(1)
+    return artist
+
+def check_artist_for_spotify_link(mbid):
+    headers = {"User-Agent": "SongGuessr/1.0 ( brandonrdebaroncelli@gmail.com )",
+        "Accept": "application/json"
+    }
+    details_resp = requests.get(f"https://musicbrainz.org/ws/2/artist/{mbid}", params={"inc": "url-rels"}, headers=headers)
+    relations = details_resp.json().get("relations", [])
+    #print("RELATIONS")
+    #print(relations)
+    spotify_links = [
+        r["url"]["resource"]
+        for r in relations
+        if "spotify.com" in r["url"]["resource"]
+    ]
+    if not spotify_links:
+        return False
+    return True
+
+def get_preview_link(song_name, artist_name):
+    process = subprocess.Popen(['node', 'example.js', song_name+artist_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    if process.returncode != 0:
+        print(f"Error: {stderr.decode()}")
+    else:
+        print(f"Output: {stdout.decode()}")
+    return stdout.decode()
 
 @app.route('/next-song', methods=['GET', 'POST'])
 def next_song():
     try:
         api_token = get_token()
 
-        while True:  # Try up to 20 countries
+        while True: # repeat until artist has spotify link
             country = random.choice(COUNTRIES)
             print(f"Trying country: {country}")
-            time.sleep(1)
 
-            # Get total artists from MusicBrainz
-            search_url = "https://musicbrainz.org/ws/2/artist"
-            headers = {"User-Agent": "SongGuessr/1.0 ( brandonrdebaroncelli@gmail.com )",
-                       "Accept": "application/json"
-            }
-            total_resp = requests.get(search_url, params={"query": f"country:{country}", "limit": 1}, headers=headers)
-            print(total_resp.json().get("count"))
-            total = total_resp.json().get("count")
-
-            offset = random.randint(0, total - 1)
-            time.sleep(1)
-            artist_resp = requests.get(search_url, params={"query": f"country:{country}", "limit": 1, "offset": offset}, headers=headers)
-            artists = artist_resp.json().get("artists", [])
-            if not artists:
+            num_artists = get_total_artists_in_country(country)
+            if num_artists == 0:
                 continue
 
-            artist = artists[0]
+            # Get a random artist in the country using offset
+            artist = get_random_artist_in_country(country, num_artists)
+            if not artist:
+                continue
+
             mbid = artist["id"]
-
             # Get streaming music links (Spotify)
-            time.sleep(1)
-            details_resp = requests.get(f"https://musicbrainz.org/ws/2/artist/{mbid}", params={"inc": "url-rels"}, headers=headers)
-            relations = details_resp.json().get("relations", [])
-            print("RELATIONS")
-            print(relations)
-            spotify_links = [
-                r["url"]["resource"]
-                for r in relations
-                if "spotify.com" in r["url"]["resource"]
-            ]
-            if not spotify_links:
+            has_spotify = check_artist_for_spotify_link(mbid)
+            if not has_spotify:
                 continue
-            print("FOUND SPOTIFY LINK")
             art_spotify = search_artist(artist['name'], api_token)
             if not art_spotify:
                 print(f"Spotify artist not found: {artist['name']}")
                 continue
-
+            print("Found artist with ID: "+mbid)
             songs = get_songs_by_artist(art_spotify["id"], api_token)
-            print(songs)
-            valid_songs = [song for song in songs if song.get("preview_url")]
-            if not valid_songs:
-                print(f"No previewable songs for {art_spotify['name']}")
-                continue
+            #print(songs)
+            #valid_songs = [song for song in songs if song.get("preview_url")]
+            #if not valid_songs:
+            #    print(f"No previewable songs for {art_spotify['name']}")
+            #    continue
 
-            song = random.choice(valid_songs)
+            song = random.choice(songs)
             print(song)
-            return build_song_json(song, art_spotify, country)
+            preview_url = get_preview_link(song["name"], artist["name"])
+            print("PREVIEW LINK:" + preview_url)
+            return build_song_json(song, art_spotify, country, preview_url)
 
         return json.dumps({"error": "Could not find a valid artist and song."}), 404, {'Content-Type': 'application/json'}
 
     except json.JSONDecodeError:
         return json.dumps({"error": "JSON decode error in request."}), 400, {'Content-Type': 'application/json'}
 
-    except Exception as e:
-        return json.dumps({"error": str(e)}), 500, {'Content-Type': 'application/json'}
-
-next_song()
-
 @app.route('/profile-pic', methods=['GET', 'POST'])
 def get_profile_picture():
-    print(request.cookies.get("access_token")+" was your access token")
     token = request.cookies.get("access_token")
     if token:
          user_info = validate_user(token)
+         print(request.cookies.get("access_token")+" was your access token")
          print(user_info)
          if user_info and 'images' in user_info and user_info['images']:
              print(user_info['images'][0]['url'])
