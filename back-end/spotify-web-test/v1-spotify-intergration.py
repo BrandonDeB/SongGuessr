@@ -23,7 +23,7 @@ CLIENT_SECRET = os.getenv("CLIENT_SECRET") # is the client secret
 REDIRECT_URI = os.getenv("REDIRECT_URI")  # is the specified redirect url in the Spotify Dev interface
 
 # Loads in the country codes available in the map
-with open("slim-2.json", "r", encoding="utf-8") as file:
+with open("filtered_countries.json", "r", encoding="utf-8") as file:
     countries = json.load(file)
 COUNTRIES = [country["alpha"] for country in countries]
 

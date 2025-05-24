@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Afghanistan",
+    "alpha": "AF",
+    "country-code": "004"
+  },
+  {
+    "name": "Albania",
+    "alpha": "AL",
+    "country-code": "008"
+  },
+  {
+    "name": "Algeria",
+    "alpha": "DZ",
+    "country-code": "012"
+  },
+  {
+    "name": "Angola",
+    "alpha": "AO",
+    "country-code": "024"
+  },
+  {
+    "name": "Argentina",
+    "alpha": "AR",
+    "country-code": "032"
+  },
+  {
+    "name": "Armenia",
+    "alpha": "AM",
+    "country-code": "051"
+  },
+  {
+    "name": "Australia",
+    "alpha": "AU",
+    "country-code": "036"
+  },
+  {
+    "name": "Austria",
+    "alpha": "AT",
+    "country-code": "040"
+  },
+  {
+    "name": "Azerbaijan",
+    "alpha": "AZ",
+    "country-code": "031"
+  },
+  {
+    "name": "Brazil",
+    "alpha": "BR",
+    "country-code": "076"
+  },
+  {
+    "name": "Canada",
+    "alpha": "CA",
+    "country-code": "124"
+  },
+  {
+    "name": "China",
+    "alpha": "CN",
+    "country-code": "156"
+  },
+  {
+    "name": "France",
+    "alpha": "FR",
+    "country-code": "250"
+  },
+  {
+    "name": "Germany",
+    "alpha": "DE",
+    "country-code": "276"
+  },
+  {
+    "name": "India",
+    "alpha": "IN",
+    "country-code": "356"
+  },
+  {
+    "name": "United States of America",
+    "alpha": "US",
+    "country-code": "840"
+  }
+]
