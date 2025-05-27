@@ -3,6 +3,7 @@ import './App.css'
 import './correctPop.css';
 import Globe from 'react-globe.gl';
 import  './heart.css';
+import useWindowDimensions from "./WindowDimension.tsx";
 
 
 export default function App() {
@@ -198,8 +199,9 @@ export default function App() {
 
     };
 
+    const { height, width } = useWindowDimensions();
 
-        return (
+    return (
             <>
                     <Globe class="globe"
                            globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
@@ -214,6 +216,8 @@ export default function App() {
                                 <b>${d.ADMIN} (${d.ISO_A2})</b>
                             `}
                            onHexPolygonClick={handleHexPolygonClick}
+                           height={height}
+                           width={width}
                     />
 
                     <Popup />
