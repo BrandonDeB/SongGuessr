@@ -3,20 +3,22 @@ import './App.css'
 import './correctPop.css';
 import Globe from 'react-globe.gl';
 import  './heart.css';
-import useWindowDimensions from "./WindowDimension.tsx";
+import useWindowDimensions from "./utilities/WindowDimension.jsx";
+import Leaderboard from "./components/Leaderboard.jsx";
+import Login from "./LoginPage.jsx";
 
 
 export default function App() {
 
     const BASE_URL = 'http://'+import.meta.env.VITE_BACKEND_IP+':'+import.meta.env.VITE_BACKEND_PORT;
 
+    const [loggedIn, setLoggedIn] = useState(false)
     const [countries, setCountries] = useState({features: []});
     const [selectedCountry, setSelectedCountry] = useState("Nothing Selected");
     const [selectedAbbr, setSelectedAbbr] = useState("NULL");
     const [colors, setColors] = useState(getColors());
     const [streak, setStreak] = useState(0);
     const [profilePic, setProfilePic] = useState("fake");
-    const [leaderBoard, setLeaderBoard] = useState(null);
     const [correct, setCorrect] = useState(<h1 style={{color: 'green'}}>CORRECT</h1>);
     const [iso, setIso] = useState(null);
     const [currentSong, setCurrentSong] = useState(
@@ -27,12 +29,13 @@ export default function App() {
         {
         }
     );
-    const [leaderboard, setLeaderboard] = useState([
-        { name: 'Landon', streak: 100 },
-        { name: 'Koby', streak: 2 },
-        { name: 'Brandon', streak: 1 },
-    ]);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+    const [leaderboard, setLeaderboard] = useState([
+        { display_name: 'Landon', streak: 100 },
+        { display_name: 'Koby', streak: 2 },
+        { display_name: 'Brandon', streak: 1 },
+    ]);
 
     const closePopup = () => {
         nextSong();
@@ -82,18 +85,47 @@ export default function App() {
                     )}
                 </div>
             );
-        };
+        }
+
+    function loadLeaderboard() {
+        fetch(BASE_URL+'/leaderboard')
+            .then(response => response.json())
+            .then(json => setLeaderboard(json))
+            .catch(error => console.error(error));
+    }
+
+        async function load_page() {
+            fetch(BASE_URL+'/validate-me', {
+                credentials: 'include',
+                crossDomain: true
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 403) {
+                            console.error('Forbidden: You do not have permission to access this resource.');
+                        } else {
+                            console.error(`HTTP error! status: ${response.status}`);
+                        }
+                        return Promise.reject(response);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    load_songs();
+                    getProfilePic();
+                    loadLeaderboard();
+                    setLoggedIn(true);
+                })
+                .catch(error => {
+                    console.error('Failed to fetch:', error);
+                });
+        }
 
 
         useEffect(() => {
             fetch('../ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
             fetch('../slim-2.json').then(res => res.json()).then(setIso);
-            fetch(BASE_URL+'/get-streak')
-                .then(response => response.json())
-                .then(json => setLeaderBoard(json))
-                .catch(error => console.error(error));
-            load_songs();
-            getProfilePic()
+            load_page();
         }, []);
 
     const handleHexPolygonClick = (polygon) => {
@@ -111,6 +143,7 @@ export default function App() {
         console.log(selectedCountry);
         if (selectedAbbr == currentSong.country) {
             setCorrect(<h1 style={{color: 'green'}}>CORRECT</h1>);
+            sendStreak();
             setStreak(streak + 1)
         } else {
             setCorrect(<h1 style={{color: 'red'}}>INCORRECT</h1>);
@@ -121,21 +154,16 @@ export default function App() {
        // alert("IT WORKED");
 
     };
-    const handleLogin = () => {
 
-        login_user();
-       // alert("IT WORKED");
-
-    };
-
-    const sendStreak = (streak) => {
-        fetch(BASE_URL+'/set-streak', {method: 'POST', // or 'PUT'
+    function sendStreak() {
+        fetch(BASE_URL+'/leaders-add', {method: 'POST', // or 'PUT'
             headers: { 'Content-Type': 'application/json',},
-            body: JSON.stringify(streak),
-            crossDomain: true
+            body: JSON.stringify({"streak": streak+1}),
+            crossDomain: true,
+            credentials: 'include',
         })
             .then(response => response.json())
-            .then(json => setLeaderBoard(json))
+            .then(json => setLeaderboard(json))
             .catch(error => console.error(error));
     }
 
@@ -148,9 +176,6 @@ export default function App() {
         .then(json => setProfilePic(json["url"]))
         .catch(error => console.error(error));
         console.log(profilePic);
-    }
-    const login_user = () => {
-        window.location.href = BASE_URL+'/login'; // Redirect to your login route
     }
 
     const load_songs = async () => {
@@ -201,7 +226,7 @@ export default function App() {
 
     const { height, width } = useWindowDimensions();
 
-    return (
+    return ( loggedIn ?
             <>
                     <Globe class="globe"
                            globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
@@ -245,26 +270,21 @@ export default function App() {
                     <h3>{streak}</h3>
 
                     <div className="profile">
-                         {profilePic ? (
-                            <img src={profilePic} alt="Profile" className="profile-pic" />
-                         ) : (
-                            <button type="button" onClick={handleLogin}>Login</button>
-                         )}
-                </div>
-
-
+                        <img src={profilePic} alt="Profile" className="profile-pic" />
+                    </div>
 
                 <div className="leaderboard">
-                    <h2>Leaderboards:</h2>
+                    <h2>Leaderboard:</h2>
                     {leaderboard.map((profile, index) => (
                         <div key={index} className="leaderboardCard">
-                            <h4>{profile.name} | Score: {profile.streak}</h4>
+                            <h4>{profile.display_name} | Score: {profile.streak}</h4>
                         </div>
                     ))}
 
                 </div>
 
-            </>
+            </> :
+            <Login></Login>
         )
 
 }

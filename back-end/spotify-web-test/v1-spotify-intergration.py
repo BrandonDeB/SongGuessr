@@ -11,6 +11,9 @@ import time
 import xml.etree.ElementTree as ET
 import urllib.parse
 import subprocess
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+import pymongo
 
 app = Flask(__name__) # flask app : spotify-intergration
 app.secret_key = os.urandom(24)  # You should set a proper secret key
@@ -21,6 +24,9 @@ load_dotenv() # loads the .env file
 CLIENT_ID = os.getenv("CLIENT_ID") # is the client id 
 CLIENT_SECRET = os.getenv("CLIENT_SECRET") # is the client secret
 REDIRECT_URI = os.getenv("REDIRECT_URI")  # is the specified redirect url in the Spotify Dev interface
+MONGO_URI = "mongodb+srv://" + os.getenv("MONGO_USR") + ":" + os.getenv("MONGO_PWD") +"@songguessr.quhlriw.mongodb.net/?retryWrites=true&w=majority&appName=SongGuessr"
+MONGO_CLIENT = MongoClient(MONGO_URI, server_api=ServerApi('1'))
+db = MONGO_CLIENT.SongGuessr
 
 # Loads in the country codes available in the map
 with open("filtered_countries.json", "r", encoding="utf-8") as file:
@@ -33,6 +39,26 @@ TOKEN_URL = "https://accounts.spotify.com/api/token"
 SEARCH_URL= "https://api.spotify.com/v1/search"
 TRACKS_URL= "https://api.spotify.com/v1/me/tracks"
 
+MUSICBRAINZ_SEARCH_URL = "https://musicbrainz.org/ws/2/artist"
+MUSICBRAINZ_HEADERS = {"User-Agent": "SongGuessr/1.0 ( brandonrdebaroncelli@gmail.com )",
+    "Accept": "application/json"
+}
+
+def ping_mongo():
+    try:
+        MONGO_CLIENT.admin.command('ping')
+        print("Pinged your deployment. You successfully connected to MongoDB!")
+    except Exception as e:
+        print(e)
+
+ping_mongo()
+
+def add_song_to_db(song):
+    song_collection = db["songs"]
+    try:
+        song_collection.insert_one(song)
+    except Exception as e:
+        print(e)
 
 def get_token(): #gets the token using the CLIENT_ID and CLIENT_SECRET
     auth_string = f"{CLIENT_ID}:{CLIENT_SECRET}"
@@ -74,6 +100,52 @@ def get_songs_by_artist(token, art_id): # searches for the songs associated with
 def index():
     return render_template('index.html')
 
+@app.route('/leaderboard')
+def leaderboard():
+    board_collection = db["users"]
+    count = 0
+    leaders = []
+    for doc in board_collection.find().sort('streak', pymongo.DESCENDING):
+        if count == 3:
+            break
+        count += 1
+        leaders.append({"id":doc["id"],"streak":doc["streak"], "display_name": doc["display_name"]})
+    return leaders
+
+def get_curr_display_name(token):
+    display_name = ""
+    user_info = validate_user(token)
+    print(user_info)
+    if user_info and 'display_name' in user_info:
+        print(user_info['display_name'])
+        display_name = user_info['display_name']
+    else:
+        return {"error": "not logged in"} # Return None if no image is found
+    return display_name
+
+
+@app.route('/leaders-add', methods=['POST'])
+def add_leader():
+    print(request.get_json())
+    try:
+        token = request.cookies.get("access_token")
+        if not token:
+            return {"error": "no token"}
+        name = get_curr_display_name(request.cookies.get("access_token"))
+        spotify_id = request.cookies.get("spotify_id")
+        streak = request.get_json()["streak"]
+        board_collection = db["users"]
+        pb = board_collection.find_one({"id": spotify_id})
+        if not pb:
+            board_collection.insert_one({"id": spotify_id, "streak": int(streak), "display_name": name})
+        else:
+            if int(streak) > pb["streak"]:
+                board_collection.find_one_and_update({"id": spotify_id},{"$set": {"streak": int(streak)}})
+    except Exception as e:
+        print(e)
+    return leaderboard() 
+
+
 @app.route('/search') # flask route to the search results given the artist name. 
 def search():
     artist_name = request.form['artist_name']
@@ -103,7 +175,9 @@ def validate_user(token):
 
 @app.route('/validate-me')
 def validate_me():
-    user_info = validate_user(session["access_token"])
+    user_info = validate_user(request.cookies.get("access_token"))
+    print(user_info)
+    print("ACCESS TOKEN: " + request.cookies.get("access_token"))
     if not user_info:
         return json.dumps({"error": "Not a valid user token"}), 403, {'Content-Type': 'application/json'}
     return json.dumps({"welcome": "User is welcome"}), 200, {'Content-Type': 'application/json'}
@@ -125,6 +199,17 @@ def callback():
             samesite='Lax',        # Controls cross-site behavior
             max_age=3600           # Expires in 1 hour (or use token_data['expires_in'])
         )
+        print(access_token)
+        user_info = validate_user(access_token)
+        resp.set_cookie(
+            "spotify_id",
+            user_info["id"],
+            httponly=True,         # Can't be accessed by JavaScript
+            secure=False,          # Set to True in production (requires HTTPS)
+            samesite='Lax',        # Controls cross-site behavior
+            max_age=3600           # Expires in 1 hour (or use token_data['expires_in'])
+        )
+
         return resp
     else:
         error_message = token_data.get('error', 'Unknown error')
@@ -198,36 +283,28 @@ def get_songs_by_artist(spotify_artist_id, token, market='US'):
     return r.json().get("tracks", [])
 
 def build_song_json(song, artist, country, preview_url):
-    return json.dumps({
+    return {
         "song_name": song["name"],
         "artist_name": artist["name"],
         "album_image": song["album"]["images"][0] if song["album"]["images"] else None,
         "preview_url": preview_url,
         "id": song["id"],
         "country": country
-    }), 200, {'Content-Type': 'application/json'}
-
+    }
 
 
 def get_total_artists_in_country(country):
-    search_url = "https://musicbrainz.org/ws/2/artist"
-    headers = {"User-Agent": "SongGuessr/1.0 ( brandonrdebaroncelli@gmail.com )",
-        "Accept": "application/json"
-    }
-    total_resp = requests.get(search_url, params={"query": f"country:{country}", "limit": 1}, headers=headers)
+    total_resp = requests.get(MUSICBRAINZ_SEARCH_URL, params={"query": f"country:{country}", "limit": 1}, headers=MUSICBRAINZ_HEADERS)
     print(total_resp.json().get("count"))
     total = total_resp.json().get("count")
     time.sleep(1)
     return total
 
 def get_random_artist_in_country(country, num_artists):
-    search_url = "https://musicbrainz.org/ws/2/artist"
-    headers = {"User-Agent": "SongGuessr/1.0 ( brandonrdebaroncelli@gmail.com )",
-        "Accept": "application/json"
-    }
-
+    if not num_artists:
+        return False
     offset = random.randint(0, num_artists - 1)
-    artist_resp = requests.get(search_url, params={"query": f"country:{country}", "limit": 1, "offset": offset}, headers=headers)
+    artist_resp = requests.get(MUSICBRAINZ_SEARCH_URL, params={"query": f"country:{country}", "limit": 1, "offset": offset}, headers=MUSICBRAINZ_HEADERS)
     artists = artist_resp.json().get("artists", [])
     if not artists:
         return False
@@ -238,10 +315,7 @@ def get_random_artist_in_country(country, num_artists):
     return artist
 
 def check_artist_for_spotify_link(mbid):
-    headers = {"User-Agent": "SongGuessr/1.0 ( brandonrdebaroncelli@gmail.com )",
-        "Accept": "application/json"
-    }
-    details_resp = requests.get(f"https://musicbrainz.org/ws/2/artist/{mbid}", params={"inc": "url-rels"}, headers=headers)
+    details_resp = requests.get(f"https://musicbrainz.org/ws/2/artist/{mbid}", params={"inc": "url-rels"}, headers=MUSICBRAINZ_HEADERS)
     relations = details_resp.json().get("relations", [])
     #print("RELATIONS")
     #print(relations)
@@ -290,7 +364,7 @@ def next_song():
             if not art_spotify:
                 print(f"Spotify artist not found: {artist['name']}")
                 continue
-            print("Found artist with ID: "+mbid)
+            #print("Found artist with ID: "+mbid)
             songs = get_songs_by_artist(art_spotify["id"], api_token)
             #print(songs)
             #valid_songs = [song for song in songs if song.get("preview_url")]
@@ -299,11 +373,14 @@ def next_song():
             #    continue
 
             song = random.choice(songs)
-            print(song)
+            #print(song)
             preview_url = get_preview_link(song["name"], artist["name"])
-            print("PREVIEW LINK:" + preview_url)
-            return build_song_json(song, art_spotify, country, preview_url)
-
+            #print("PREVIEW LINK:" + preview_url)
+            song_json = build_song_json(song, art_spotify, country, preview_url)
+            add_song_to_db(song_json)
+            if "_id" in song_json:
+                song_json["_id"] = str(song_json["_id"])
+            return json.dumps(song_json), 200, {'Content-Type': 'application/json'}
         return json.dumps({"error": "Could not find a valid artist and song."}), 404, {'Content-Type': 'application/json'}
 
     except json.JSONDecodeError:
