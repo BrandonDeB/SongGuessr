@@ -3,9 +3,12 @@ import './App.css'
 import './correctPop.css';
 import Globe from 'react-globe.gl';
 import  './heart.css';
+import SpotifyPopupModal from './modals/spotifyPopupLogin';
 
 
 export default function App() {
+    //add a pop-up that does not disappear until the user presses "Sign-in with Spotify" and their token is returned.
+     const [showModal, setShowModal] = useState(true);
 
     const BASE_URL = 'http://'+import.meta.env.VITE_BACKEND_IP+':'+import.meta.env.VITE_BACKEND_PORT;
 
@@ -82,7 +85,7 @@ export default function App() {
                 </div>
             );
         };
-
+        
 
         useEffect(() => {
             fetch('../ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
@@ -139,15 +142,24 @@ export default function App() {
     }
 
     const getProfilePic = () => {
-        fetch(BASE_URL+'/profile-pic', {
-            credentials: 'include',
-            crossDomain: true
-        })
-        .then(response => response.json())
-        .then(json => setProfilePic(json["url"]))
-        .catch(error => console.error(error));
-        console.log(profilePic);
-    }
+    fetch(BASE_URL+'/profile-pic', {
+        credentials: 'include',
+        crossDomain: true
+    })
+    .then(response => response.json())
+    .then(json => {
+        if (json.url) {
+            setProfilePic(json.url);
+            setShowModal(false); // user is signed in
+        } else {
+            setShowModal(true); // user is NOT signed in
+        }
+    })
+    .catch(error => {
+        console.error(error);
+        setShowModal(true); // fallback: assume not signed in
+    });
+}
     const login_user = () => {
         window.location.href = BASE_URL+'/login'; // Redirect to your login route
     }
@@ -200,7 +212,7 @@ export default function App() {
 
 
         return (
-            <>
+            <>  <SpotifyPopupModal show={showModal} onClose={() => setShowModal(false)} />
                     <Globe class="globe"
                            globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
 
