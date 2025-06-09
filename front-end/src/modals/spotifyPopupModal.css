@@ -1,0 +1,78 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* ensure it's on top */
+}
+/* Base light mode styles */
+.modal-content {
+  background: white;
+  color: #111; /* DARK TEXT */
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+}
+
+/* Explicitly override text color for dark mode */
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    background-color: #f4f4f4; /* soft light gray */
+    color: #111; /* still dark text */
+  }
+
+  .cancel-button {
+    color: #333;
+  }
+
+  .cancel-button:hover {
+    color: #000;
+  }
+}
+
+
+
+.modal-content h2 {
+  margin-top: 0;
+  font-size: 1.5rem;
+}
+
+.modal-content p {
+  margin: 1rem 0;
+}
+
+.spotify-button {
+  background-color: #1db954;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 30px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.spotify-button:hover {
+  background-color: #1aa34a;
+}
+
+.cancel-button {
+  background: none;
+  border: none;
+  color: #888;
+  margin-top: 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.cancel-button:hover {
+  text-decoration: underline;
+}
