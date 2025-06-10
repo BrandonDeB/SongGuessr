@@ -4,8 +4,8 @@ import './correctPop.css';
 import Globe from 'react-globe.gl';
 import  './heart.css';
 import useWindowDimensions from "./utilities/WindowDimension.jsx";
-import Leaderboard from "./components/Leaderboard.jsx";
 import Login from "./LoginPage.jsx";
+import SpotifyPlayer from "./components/WebPlayer.jsx";
 
 
 export default function App() {
@@ -13,6 +13,7 @@ export default function App() {
     const BASE_URL = 'http://'+import.meta.env.VITE_BACKEND_IP+':'+import.meta.env.VITE_BACKEND_PORT;
 
     const [loggedIn, setLoggedIn] = useState(false)
+    const [token, setToken] = useState("");
     const [countries, setCountries] = useState({features: []});
     const [selectedCountry, setSelectedCountry] = useState("Nothing Selected");
     const [selectedAbbr, setSelectedAbbr] = useState("NULL");
@@ -37,6 +38,12 @@ export default function App() {
         { display_name: 'Brandon', streak: 1 },
     ]);
 
+    useEffect(() => {
+        fetch('../ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
+        fetch('../slim-2.json').then(res => res.json()).then(setIso);
+        load_page();
+    }, []);
+
     const closePopup = () => {
         nextSong();
         setIsPopupOpen(false);
@@ -50,42 +57,42 @@ export default function App() {
         return colorArr;
     }
 
-        function getCountByIso(isoSearch) {
-            for(let i = 0; i < iso.length; i++) {
-                if (iso[i].alpha == isoSearch) {
-                    return iso[i].name;
-                }
+    function getCountByIso(isoSearch) {
+        for(let i = 0; i < iso.length; i++) {
+            if (iso[i].alpha == isoSearch) {
+                return iso[i].name;
             }
-            return "not found"
         }
+        return "not found"
+    }
 
-        const Popup = () => {
-            return (
-                <div>
-                    {isPopupOpen && (
-                        <div className="modal">
-                            <div className="content">
-                                <div className="contentText">
-                                {correct}
+    const Popup = () => {
+        return (
+            <div>
+                {isPopupOpen && (
+                    <div className="modal">
+                        <div className="content">
+                            <div className="contentText">
+                            {correct}
 
-                                <h2>This song is from {getCountByIso(currentSong.country)}</h2>
-                                <img className= "songImage" src={currentSong.album_image.url} alt={"Song pic"}/>
-                                <h2>{currentSong.song_name}</h2>
-                                <h2>{currentSong.artist_name}</h2>
+                            <h2>This song is from {getCountByIso(currentSong.country)}</h2>
+                            <img className= "songImage" src={currentSong.album_image.url} alt={"Song pic"}/>
+                            <h2>{currentSong.song_name}</h2>
+                            <h2>{currentSong.artist_name}</h2>
 
 
 
-                                <div className="popButtons">
-                                    <button onClick={closePopup} type="button">Next Song</button>
-                                                          </div>
-                                </div>
-
+                            <div className="popButtons">
+                                <button onClick={closePopup} type="button">Next Song</button>
+                                                      </div>
                             </div>
+
                         </div>
-                    )}
-                </div>
-            );
-        }
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     function loadLeaderboard() {
         fetch(BASE_URL+'/leaderboard')
@@ -94,39 +101,34 @@ export default function App() {
             .catch(error => console.error(error));
     }
 
-        async function load_page() {
-            fetch(BASE_URL+'/validate-me', {
-                credentials: 'include',
-                crossDomain: true
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        if (response.status === 403) {
-                            console.error('Forbidden: You do not have permission to access this resource.');
-                        } else {
-                            console.error(`HTTP error! status: ${response.status}`);
-                        }
-                        return Promise.reject(response);
+    async function load_page() {
+        fetch(BASE_URL+'/validate-me', {
+            credentials: 'include',
+            crossDomain: true
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        console.error('Forbidden: You do not have permission to access this resource.');
+                    } else {
+                        console.error(`HTTP error! status: ${response.status}`);
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    load_songs();
-                    getProfilePic();
-                    loadLeaderboard();
-                    setLoggedIn(true);
-                })
-                .catch(error => {
-                    console.error('Failed to fetch:', error);
-                });
-        }
-
-
-        useEffect(() => {
-            fetch('../ne_110m_admin_0_countries.geojson').then(res => res.json()).then(setCountries);
-            fetch('../slim-2.json').then(res => res.json()).then(setIso);
-            load_page();
-        }, []);
+                    return Promise.reject(response);
+                }
+                return response.json();
+            })
+            .then(data => {
+                setToken(data.token);
+                console.log(data.token)
+                load_songs();
+                getProfilePic();
+                loadLeaderboard();
+                setLoggedIn(true);
+            })
+            .catch(error => {
+                console.error('Failed to fetch:', error);
+            });
+    }
 
     const handleHexPolygonClick = (polygon) => {
         setSelectedAbbr(polygon.properties.ISO_A2);
@@ -175,7 +177,6 @@ export default function App() {
         .then(response => response.json())
         .then(json => setProfilePic(json["url"]))
         .catch(error => console.error(error));
-        console.log(profilePic);
     }
 
     const load_songs = async () => {
@@ -202,7 +203,6 @@ export default function App() {
             .then(response => response.json())
             .then(json => setBufferSong(json))
             .catch(error => console.error(error));
-
     };
 
     const nextSong = () => {
@@ -251,12 +251,7 @@ export default function App() {
                         <h1>{selectedCountry}</h1>
                         <h2>{selectedAbbr}</h2>
 
-                        <div className="songPlayer">
-                            <audio key={currentSong.id} controls>
-                                <source src={currentSong.preview_url} type="audio/mp3"/>
-                                Your browser does not support the audio element.
-                            </audio>
-                        </div>
+                        <SpotifyPlayer token={token} song_uri={currentSong["uri"]}/>
                     </div>
 
 

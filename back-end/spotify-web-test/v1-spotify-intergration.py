@@ -115,9 +115,9 @@ def leaderboard():
 def get_curr_display_name(token):
     display_name = ""
     user_info = validate_user(token)
-    print(user_info)
+    #print(user_info)
     if user_info and 'display_name' in user_info:
-        print(user_info['display_name'])
+        #print(user_info['display_name'])
         display_name = user_info['display_name']
     else:
         return {"error": "not logged in"} # Return None if no image is found
@@ -126,7 +126,7 @@ def get_curr_display_name(token):
 
 @app.route('/leaders-add', methods=['POST'])
 def add_leader():
-    print(request.get_json())
+    #print(request.get_json())
     try:
         token = request.cookies.get("access_token")
         if not token:
@@ -156,7 +156,7 @@ def search():
 
 @app.route('/login')
 def login():
-    scope = 'user-library-modify user-library-read'
+    scope = 'user-library-modify user-library-read streaming user-read-email user-read-private user-modify-playback-state user-read-playback-state'
     auth_url = f"https://accounts.spotify.com/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&scope={scope}"
     return redirect(auth_url)
 
@@ -176,11 +176,11 @@ def validate_user(token):
 @app.route('/validate-me')
 def validate_me():
     user_info = validate_user(request.cookies.get("access_token"))
-    print(user_info)
-    print("ACCESS TOKEN: " + request.cookies.get("access_token"))
+    #print(user_info)
     if not user_info:
         return json.dumps({"error": "Not a valid user token"}), 403, {'Content-Type': 'application/json'}
-    return json.dumps({"welcome": "User is welcome"}), 200, {'Content-Type': 'application/json'}
+    print("ACCESS TOKEN: " + request.cookies.get("access_token"))
+    return json.dumps({"token": request.cookies.get("access_token")}), 200, {'Content-Type': 'application/json'}
 
 @app.route('/callback')
 def callback():
@@ -199,7 +199,7 @@ def callback():
             samesite='Lax',        # Controls cross-site behavior
             max_age=3600           # Expires in 1 hour (or use token_data['expires_in'])
         )
-        print(access_token)
+        #print(access_token)
         user_info = validate_user(access_token)
         resp.set_cookie(
             "spotify_id",
@@ -282,12 +282,12 @@ def get_songs_by_artist(spotify_artist_id, token, market='US'):
     r = requests.get(url, headers=headers, params=params)
     return r.json().get("tracks", [])
 
-def build_song_json(song, artist, country, preview_url):
+def build_song_json(song, artist, country):
     return {
         "song_name": song["name"],
         "artist_name": artist["name"],
         "album_image": song["album"]["images"][0] if song["album"]["images"] else None,
-        "preview_url": preview_url,
+        "uri": song["uri"],
         "id": song["id"],
         "country": country
     }
@@ -295,7 +295,7 @@ def build_song_json(song, artist, country, preview_url):
 
 def get_total_artists_in_country(country):
     total_resp = requests.get(MUSICBRAINZ_SEARCH_URL, params={"query": f"country:{country}", "limit": 1}, headers=MUSICBRAINZ_HEADERS)
-    print(total_resp.json().get("count"))
+    #print(total_resp.json().get("count"))
     total = total_resp.json().get("count")
     time.sleep(1)
     return total
@@ -328,15 +328,6 @@ def check_artist_for_spotify_link(mbid):
         return False
     return True
 
-def get_preview_link(song_name, artist_name):
-    process = subprocess.Popen(['node', 'example.js', song_name+artist_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    if process.returncode != 0:
-        print(f"Error: {stderr.decode()}")
-    else:
-        print(f"Output: {stdout.decode()}")
-    return stdout.decode()
-
 @app.route('/next-song', methods=['GET', 'POST'])
 def next_song():
     try:
@@ -362,7 +353,7 @@ def next_song():
                 continue
             art_spotify = search_artist(artist['name'], api_token)
             if not art_spotify:
-                print(f"Spotify artist not found: {artist['name']}")
+                #print(f"Spotify artist not found: {artist['name']}")
                 continue
             #print("Found artist with ID: "+mbid)
             songs = get_songs_by_artist(art_spotify["id"], api_token)
@@ -373,10 +364,10 @@ def next_song():
             #    continue
 
             song = random.choice(songs)
-            #print(song)
-            preview_url = get_preview_link(song["name"], artist["name"])
+            print(song)
+            #preview_url = get_preview_link(song["name"], artist["name"])
             #print("PREVIEW LINK:" + preview_url)
-            song_json = build_song_json(song, art_spotify, country, preview_url)
+            song_json = build_song_json(song, art_spotify, country)
             add_song_to_db(song_json)
             if "_id" in song_json:
                 song_json["_id"] = str(song_json["_id"])
@@ -391,10 +382,10 @@ def get_profile_picture():
     token = request.cookies.get("access_token")
     if token:
          user_info = validate_user(token)
-         print(request.cookies.get("access_token")+" was your access token")
-         print(user_info)
+         #print(request.cookies.get("access_token")+" was your access token")
+         #print(user_info)
          if user_info and 'images' in user_info and user_info['images']:
-             print(user_info['images'][0]['url'])
+             #print(user_info['images'][0]['url'])
              return json.dumps({"url": user_info['images'][0]['url']}), 200, {'Content-Type': 'application/json'}
     return {"url": ""} # Return None if no image is found
 
