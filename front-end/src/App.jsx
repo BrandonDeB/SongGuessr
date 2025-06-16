@@ -16,7 +16,7 @@ export default function App() {
     const [token, setToken] = useState("");
     const [countries, setCountries] = useState({features: []});
     const [selectedCountry, setSelectedCountry] = useState("Nothing Selected");
-    const [selectedAbbr, setSelectedAbbr] = useState("NULL");
+    const [selectedAbbr, setSelectedAbbr] = useState("Select a Country");
     const [colors, setColors] = useState(getColors());
     const [streak, setStreak] = useState(0);
     const [profilePic, setProfilePic] = useState("fake");
@@ -26,10 +26,6 @@ export default function App() {
             {
             }
         );
-    const [bufferSong, setBufferSong] = useState(
-        {
-        }
-    );
     const [isPopupOpen, setIsPopupOpen] = useState(false);
 
     const [leaderboard, setLeaderboard] = useState([
@@ -107,23 +103,28 @@ export default function App() {
             crossDomain: true
         })
             .then(response => {
+					console.log("VALIDATE RESPONSE:");
+					console.log(response);
+
                 if (!response.ok) {
                     if (response.status === 403) {
                         console.error('Forbidden: You do not have permission to access this resource.');
+							  setLoggedIn(false);
                     } else {
                         console.error(`HTTP error! status: ${response.status}`);
                     }
                     return Promise.reject(response);
                 }
-                return response.json();
+					return response.json();
             })
             .then(data => {
+					if (data) {
                 setToken(data.token);
-                console.log(data.token)
-                load_songs();
+                nextSong();
                 getProfilePic();
                 loadLeaderboard();
                 setLoggedIn(true);
+					}
             })
             .catch(error => {
                 console.error('Failed to fetch:', error);
@@ -152,9 +153,6 @@ export default function App() {
             setStreak(0)
         }
         setIsPopupOpen(true);
-
-       // alert("IT WORKED");
-
     };
 
     function sendStreak() {
@@ -179,13 +177,12 @@ export default function App() {
         .catch(error => console.error(error));
     }
 
-    const load_songs = async () => {
+    const nextSong = () => {
         let country_codes = []
         for (let i = 0; i < countries.features.length; i++) {
             country_codes.push(countries.features[i].properties.ISO_A2);
         }
-        console.log(country_codes);
-        await fetch(BASE_URL+'/next-song', {
+        fetch(BASE_URL+'/next-song', {
             method: 'POST', // or 'PUT'
             headers: {'Content-Type': 'application/json',},
             crossDomain: true,
@@ -194,34 +191,6 @@ export default function App() {
             .then(response => response.json())
             .then(json => setCurrentSong(json))
             .catch(error => console.error(error));
-        fetch(BASE_URL+'/next-song', {
-            method: 'POST', // or 'PUT'
-            headers: {'Content-Type': 'application/json',},
-            crossDomain: true,
-            body: JSON.stringify(country_codes),
-        })
-            .then(response => response.json())
-            .then(json => setBufferSong(json))
-            .catch(error => console.error(error));
-    };
-
-    const nextSong = () => {
-        let country_codes = []
-        for (let i = 0; i < countries.features.length; i++) {
-            country_codes.push(countries.features[i].properties.ISO_A2);
-        }
-        console.log(country_codes);
-        setCurrentSong(bufferSong);
-        fetch(BASE_URL+'/next-song', {
-            method: 'POST', // or 'PUT'
-            headers: {'Content-Type': 'application/json',},
-            crossDomain: true,
-            body: JSON.stringify(country_codes),
-        })
-            .then(response => response.json())
-            .then(json => setBufferSong(json))
-            .catch(error => console.error(error));
-
     };
 
     const { height, width } = useWindowDimensions();
@@ -283,5 +252,3 @@ export default function App() {
         )
 
 }
-
-
